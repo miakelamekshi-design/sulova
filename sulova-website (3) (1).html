@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sulova — Memoria e Tokës</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Cormorant+SC:wght@300;400;600&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+<style>
+/* ═══ ROOT ═══ */
+:root{
+  --ember:#c17d3c;--ember-lt:#e8b86a;--bone:#f0e8d5;
+  --parchment:#e8dbbf;--ink:#1c1409;--ash:#3a2e1e;
+  --copper:#8b5e3c;--rust:#6b2d0e;--green:#3a5a2a;--green-lt:#5a8a3a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{background:var(--ink);color:var(--bone);font-family:'Cormorant Garamond',Georgia,serif;overflow:hidden;height:100vh;}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;}
+#particles{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0.38;}
+/* ── SCREENS ── */
+.screen{position:fixed;inset:0;opacity:0;visibility:hidden;transition:opacity 1.1s cubic-bezier(0.4,0,0.2,1),visibility 1.1s ease;z-index:1;}
+.screen.active{opacity:1;visibility:visible;z-index:2;}
+.sw{height:100vh;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--ember) transparent;}
+.sw::-webkit-scrollbar{width:3px;}.sw::-webkit-scrollbar-thumb{background:var(--ember);}
+/* ── BACK BTN ── */
+.back-btn{position:fixed;top:26px;right:30px;z-index:200;font-family:'Cormorant SC',serif;font-size:0.6rem;letter-spacing:4px;color:var(--ember);background:rgba(28,20,9,0.88);border:1px solid rgba(193,125,60,0.3);padding:10px 20px;cursor:pointer;transition:all 0.3s;backdrop-filter:blur(12px);}
+.back-btn:hover{background:var(--ember);color:var(--ink);}
+/* ── HERO ── */
+#hero{background:#070401;}
+.hero-img{position:absolute;inset:0;background:url('https://i.ibb.co/MDWNs0hh/IMG-5646.jpg') center/cover;filter:brightness(0.3) sepia(0.5) saturate(0.7);transform:scale(1.06);animation:hBreath 18s ease-in-out infinite alternate;}
+@keyframes hBreath{from{transform:scale(1.06) translateY(0);}to{transform:scale(1.12) translateY(-14px);}}
+.hero-torn{position:absolute;inset:0;background:linear-gradient(160deg,transparent 52%,#070401 52.5%),linear-gradient(to bottom,rgba(7,4,1,0.22),rgba(7,4,1,0.88));}
+.hero-frame{position:absolute;top:22px;left:22px;right:22px;bottom:22px;border:1px solid rgba(193,125,60,0.22);pointer-events:none;}
+.hero-frame::before{content:'';position:absolute;top:6px;left:6px;right:6px;bottom:6px;border:1px solid rgba(193,125,60,0.07);}
+.hero-frame::after{content:'';position:absolute;top:-1px;left:-1px;width:44px;height:44px;border-top:2px solid var(--ember);border-left:2px solid var(--ember);}
+.hero-corner-br{position:absolute;bottom:-1px;right:-1px;width:44px;height:44px;border-bottom:2px solid var(--ember);border-right:2px solid var(--ember);}
+.hero-cnt{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;text-align:center;padding:40px;}
+.hero-eye{font-family:'Cormorant SC',serif;font-size:0.58rem;letter-spacing:12px;color:var(--ember);opacity:0;animation:inkUp 1.4s ease 0.4s forwards;}
+.hero-title{font-family:'UnifrakturMaguntia',cursive;font-size:clamp(5rem,13vw,10.5rem);color:var(--bone);line-height:0.88;text-shadow:0 0 100px rgba(193,125,60,0.22),0 2px 0 rgba(0,0,0,0.8);opacity:0;animation:inkUp 1.6s ease 0.7s forwards;position:relative;}
+.hero-title::after{content:'';position:absolute;bottom:-14px;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--ember) 30%,var(--ember) 70%,transparent);}
+.hero-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(0.95rem,2vw,1.3rem);color:rgba(240,232,213,0.65);max-width:520px;line-height:1.85;margin-top:36px;opacity:0;animation:inkUp 1.4s ease 1.1s forwards;}
+.hero-cta{margin-top:52px;opacity:0;animation:inkUp 1.2s ease 1.5s forwards;}
+.btn-ember{font-family:'Cormorant SC',serif;font-size:0.62rem;letter-spacing:6px;background:transparent;border:1px solid var(--ember);color:var(--ember);padding:15px 42px;cursor:pointer;transition:0.4s;position:relative;overflow:hidden;}
+.btn-ember::before{content:'';position:absolute;inset:0;background:var(--ember);transform:scaleX(0);transform-origin:left;transition:transform 0.4s ease;}
+.btn-ember:hover::before{transform:scaleX(1);}
+.btn-ember:hover{color:var(--ink);}
+.btn-ember span{position:relative;z-index:1;}
+.rune-ticker{position:absolute;bottom:0;left:0;right:0;height:34px;border-top:1px solid rgba(193,125,60,0.12);overflow:hidden;display:flex;align-items:center;}
+.rune-track{display:flex;animation:ticker 32s linear infinite;white-space:nowrap;}
+.rune-item{font-family:'Cormorant SC',serif;font-size:0.5rem;letter-spacing:5px;color:rgba(193,125,60,0.38);padding:0 26px;}
+.rune-item::before{content:'◆  ';}
+@keyframes ticker{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+@keyframes inkUp{from{opacity:0;filter:blur(6px);transform:translateY(18px);}to{opacity:1;filter:blur(0);transform:translateY(0);}}
+/* ── PARCHMENT SCREENS ── */
+.parch{background:radial-gradient(ellipse 80% 60% at 20% 40%,rgba(107,45,14,0.08),transparent),var(--parchment);color:var(--ink);}
+.parch::before{content:'';position:fixed;inset:0;pointer-events:none;background-image:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(28,20,9,0.02) 28px,rgba(28,20,9,0.02) 29px);z-index:0;}
+.pg{position:relative;z-index:1;max-width:840px;margin:0 auto;padding:80px 48px 120px;}
+/* ── CHAPTER HEADER ── */
+.ch-hdr{text-align:center;margin-bottom:50px;}
+.ch-num{font-family:'UnifrakturMaguntia',cursive;font-size:5rem;color:rgba(107,45,14,0.1);line-height:1;display:block;margin-bottom:-20px;}
+.ch-lbl{font-family:'Cormorant SC',serif;font-size:0.58rem;letter-spacing:10px;color:var(--rust);display:block;margin-bottom:13px;}
+.ch-title{font-family:'Cormorant SC',serif;font-size:clamp(1.4rem,3.5vw,2.3rem);font-weight:600;color:var(--ash);line-height:1.28;}
+.ch-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.1rem;color:var(--copper);margin-top:10px;display:block;}
+/* ── ORNAMENT ── */
+.orn{display:flex;align-items:center;gap:14px;margin:22px 0;}
+.orn::before,.orn::after{content:'';flex:1;height:0.5px;background:linear-gradient(90deg,transparent,rgba(107,45,14,0.32),transparent);}
+.orn-dia{width:7px;height:7px;background:var(--rust);transform:rotate(45deg);flex-shrink:0;}
+/* ── BODY TEXT ── */
+.bt{font-size:1.08rem;line-height:2;color:#2e2214;margin-bottom:24px;text-align:justify;}
+.dropcap::first-letter{font-family:'UnifrakturMaguntia',cursive;font-size:4.6rem;float:left;line-height:0.72;margin:10px 14px 0 0;color:var(--rust);}
+.marginal{float:right;width:148px;margin:0 -88px 20px 18px;border-left:2px solid var(--rust);padding-left:12px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:0.88rem;line-height:1.6;color:var(--rust);}
+em.hl{font-style:normal;background:linear-gradient(transparent 66%,rgba(107,45,14,0.15) 66%);padding:0 2px;}
+/* ── SUB-SECTION HEAD ── */
+.sub-head{font-family:'Cormorant SC',serif;font-size:1.05rem;letter-spacing:3px;color:var(--rust);margin:40px 0 16px;display:flex;align-items:center;gap:12px;}
+.sub-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(107,45,14,0.3),transparent);}
+/* ── SECTION DIVIDER ── */
+.sec-div{display:flex;align-items:center;gap:14px;margin:38px 0;}
+.sec-div::before,.sec-div::after{content:'';flex:1;height:0.5px;background:linear-gradient(90deg,transparent,rgba(107,45,14,0.28),transparent);}
+.sec-sym{font-family:'UnifrakturMaguntia',cursive;font-size:1.3rem;color:rgba(107,45,14,0.38);}
+/* ── STAMPS ── */
+.stamp-row{display:flex;gap:14px;margin:30px 0;flex-wrap:wrap;}
+.stamp{flex:1;min-width:100px;border:2px solid var(--rust);padding:14px 10px;text-align:center;position:relative;transform:rotate(var(--rot,0deg));background:rgba(107,45,14,0.03);}
+.stamp::before{content:'';position:absolute;inset:4px;border:1px dashed rgba(107,45,14,0.22);}
+.stamp-num{font-family:'UnifrakturMaguntia',cursive;font-size:2rem;color:var(--rust);display:block;line-height:1;}
+.stamp-lbl{font-family:'Cormorant SC',serif;font-size:0.5rem;letter-spacing:2px;color:var(--ash);margin-top:5px;display:block;}
+.stamp:nth-child(1){--rot:-1.5deg;}.stamp:nth-child(2){--rot:0.7deg;}.stamp:nth-child(3){--rot:-0.4deg;}.stamp:nth-child(4){--rot:1.2deg;}
+/* ── PULL QUOTE ── */
+.wax-q{margin:42px 0;padding:30px 42px;border-top:1px solid rgba(107,45,14,0.2);border-bottom:1px solid rgba(107,45,14,0.2);position:relative;text-align:center;}
+.wax-q::before{content:'✦';position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--parchment);padding:0 12px;color:var(--rust);font-size:0.9rem;}
+.wax-q p{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.36rem;line-height:1.75;color:var(--ash);}
+.wax-q cite{display:block;margin-top:12px;font-style:normal;font-family:'Cormorant SC',serif;font-size:0.58rem;letter-spacing:4px;color:var(--copper);}
+/* ── CARVED BLOCK ── */
+.carved{background:var(--ash);color:var(--bone);padding:28px 32px;margin:20px 0;position:relative;clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));}
+.carved::before{content:'';position:absolute;inset:1px;background:rgba(255,255,255,0.012);clip-path:inherit;pointer-events:none;}
+.carved h3{font-family:'Cormorant SC',serif;font-size:0.85rem;letter-spacing:2px;color:var(--ember);margin-bottom:10px;}
+.carved p{font-size:1rem;line-height:1.82;color:rgba(240,232,213,0.82);}
+.carved-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:26px 0;}
+/* ── TIMELINE ── */
+.timeline{margin:34px 0;border-left:1px solid rgba(107,45,14,0.28);padding-left:26px;}
+.tli{margin-bottom:30px;position:relative;}
+.tli::before{content:'';position:absolute;left:-32px;top:6px;width:9px;height:9px;background:var(--rust);transform:rotate(45deg);}
+.tli-yr{font-family:'Cormorant SC',serif;font-size:0.58rem;letter-spacing:3px;color:var(--rust);}
+.tli-title{font-family:'Cormorant SC',serif;font-size:1rem;color:var(--ash);margin:3px 0 5px;}
+.tli-txt{font-size:0.98rem;line-height:1.75;color:#3a2e1e;}
+/* ── DECO TAGS ── */
+.dtag{display:inline-block;font-family:'Cormorant SC',serif;font-size:0.52rem;letter-spacing:3px;border:1px solid rgba(107,45,14,0.3);color:var(--rust);padding:4px 11px;margin:3px;transition:background 0.2s,color 0.2s;cursor:default;}
+.dtag:hover{background:var(--rust);color:var(--bone);}
+.dtags{margin:22px 0;}
+/* ── CONT BTN ── */
+.cont-btn{display:block;margin:58px auto 0;font-family:'Cormorant SC',serif;font-size:0.62rem;letter-spacing:6px;background:var(--ash);color:var(--parchment);border:none;padding:17px 46px;cursor:pointer;transition:0.35s;}
+.cont-btn:hover{background:var(--rust);}
+/* ── PHOTO FRAMES ── */
+.pf{position:relative;overflow:hidden;background:#1e1509;flex-shrink:0;}
+.pf img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.7s,filter 0.7s;filter:sepia(0.1) brightness(0.92);}
+.pf:hover img{transform:scale(1.07);filter:sepia(0) brightness(1);}
+.pf::before{content:'';position:absolute;inset:0;z-index:2;background:linear-gradient(to bottom right,rgba(240,232,213,0.07),transparent 40%),linear-gradient(to top left,rgba(0,0,0,0.28),transparent 40%);pointer-events:none;}
+.pf::after{content:'';position:absolute;inset:0;z-index:3;border:1px solid rgba(240,232,213,0.1);box-shadow:inset 0 0 0 1px rgba(0,0,0,0.38);pointer-events:none;}
+.pf-cap{position:absolute;bottom:0;left:0;right:0;z-index:4;padding:26px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,0.65));font-family:'Cormorant SC',serif;font-size:0.5rem;letter-spacing:3px;color:rgba(193,125,60,0.88);text-align:center;}
+/* ── PHOTO PLACEHOLDER — labeled clearly ── */
+.ph{
+  width:100%;height:100%;min-height:inherit;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;
+  background:linear-gradient(135deg,#2a1e10,#1a1208);
+  border:2px dashed rgba(193,125,60,0.35);
+  position:relative;
+}
+.ph::before{
+  content:'';position:absolute;inset:6px;
+  border:1px dashed rgba(193,125,60,0.15);
+  pointer-events:none;
+}
+.ph-icon{font-size:1.8rem;opacity:0.55;line-height:1;}
+.ph-lbl{
+  font-family:'Cormorant SC',serif;
+  font-size:0.55rem;letter-spacing:2px;
+  color:rgba(193,125,60,0.7);
+  text-align:center;padding:0 14px;
+  line-height:1.6;
+  text-transform:uppercase;
+}
+
+/* ══════════════════════════════════
+   VINTAGE CULTURAL ELEMENTS
+══════════════════════════════════ */
+
+/* Vintage postcard frame */
+.vintage-card{
+  background:var(--paper,#f4edd8);
+  border:1px solid rgba(107,45,14,0.2);
+  padding:0;
+  position:relative;
+  margin:32px 0;
+  box-shadow:3px 4px 16px rgba(0,0,0,0.12),inset 0 0 0 8px rgba(107,45,14,0.04);
+}
+.vintage-card::before{
+  content:'';position:absolute;
+  inset:8px;border:1px solid rgba(107,45,14,0.12);
+  pointer-events:none;z-index:1;
+}
+.vintage-card-inner{padding:24px 28px;position:relative;z-index:2;}
+.vintage-card-stamp{
+  position:absolute;top:16px;right:16px;
+  width:52px;height:62px;
+  border:1px solid rgba(107,45,14,0.3);
+  background:rgba(107,45,14,0.04);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:2px;
+}
+.vintage-card-stamp span:first-child{font-size:1.2rem;}
+.vintage-card-stamp span:last-child{
+  font-family:'Cormorant SC',serif;
+  font-size:0.38rem;letter-spacing:2px;color:var(--rust);
+}
+.vc-title{
+  font-family:'UnifrakturMaguntia',cursive;
+  font-size:1.6rem;color:var(--rust);
+  display:block;margin-bottom:8px;
+}
+.vc-text{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:1rem;
+  color:var(--ash);line-height:1.7;
+}
+
+/* Vintage ink stamp */
+.ink-stamp{
+  display:inline-block;
+  border:3px solid var(--rust);
+  border-radius:4px;
+  padding:10px 18px;
+  font-family:'Cormorant SC',serif;
+  font-size:0.7rem;letter-spacing:4px;
+  color:var(--rust);
+  transform:rotate(-2deg);
+  opacity:0.7;
+  position:relative;
+  margin:16px 0;
+}
+.ink-stamp::before{
+  content:'';position:absolute;inset:3px;
+  border:1px solid var(--rust);
+  border-radius:2px;opacity:0.4;
+}
+
+/* Vintage divider with ornament */
+.vint-div{
+  display:flex;align-items:center;gap:0;
+  margin:36px 0;overflow:hidden;
+}
+.vint-div-line{flex:1;height:1px;background:rgba(107,45,14,0.2);}
+.vint-div-orn{
+  font-family:'UnifrakturMaguntia',cursive;
+  font-size:1.1rem;color:rgba(107,45,14,0.4);
+  padding:0 16px;white-space:nowrap;
+}
+
+/* Vintage map pin row */
+.map-pins{
+  display:flex;gap:6px;flex-wrap:wrap;
+  margin:20px 0;
+}
+.map-pin{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(107,45,14,0.06);
+  border:1px solid rgba(107,45,14,0.18);
+  padding:5px 12px;
+  font-family:'Cormorant SC',serif;
+  font-size:0.52rem;letter-spacing:2px;color:var(--ash);
+}
+.map-pin::before{content:'◆';color:var(--rust);font-size:0.4rem;}
+
+/* Vintage quote with big guillemets */
+.guillmet-q{
+  margin:40px 0;padding:28px 44px 28px 60px;
+  border-left:3px solid var(--rust);
+  position:relative;background:rgba(107,45,14,0.03);
+}
+.guillmet-q::before{
+  content:'❝';
+  position:absolute;top:-10px;left:12px;
+  font-size:3rem;color:var(--rust);opacity:0.25;
+  font-family:Georgia,serif;line-height:1;
+}
+.guillmet-q p{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:1.2rem;
+  color:var(--ash);line-height:1.75;
+}
+.guillmet-q cite{
+  display:block;margin-top:10px;
+  font-family:'Cormorant SC',serif;
+  font-size:0.55rem;letter-spacing:3px;
+  color:var(--copper);font-style:normal;
+}
+
+/* Vintage facts ribbon */
+.facts-ribbon{
+  background:var(--rust);
+  color:var(--bone);
+  display:flex;gap:0;
+  margin:32px 0;
+}
+.fact-r{
+  flex:1;padding:20px 16px;
+  text-align:center;
+  border-right:1px solid rgba(240,232,213,0.15);
+}
+.fact-r:last-child{border-right:none;}
+.fact-r-num{
+  font-family:'UnifrakturMaguntia',cursive;
+  font-size:2rem;color:var(--bone);
+  display:block;line-height:1;
+}
+.fact-r-lbl{
+  font-family:'Cormorant SC',serif;
+  font-size:0.48rem;letter-spacing:3px;
+  opacity:0.7;display:block;margin-top:5px;
+}
+
+/* Vintage newspaper-style 3-col text */
+.news-cols{
+  column-count:2;column-gap:28px;
+  column-rule:1px solid rgba(107,45,14,0.15);
+  margin:24px 0;
+  font-size:0.95rem;line-height:1.85;
+  color:#2e2214;
+  text-align:justify;
+}
+
+/* Wax seal */
+.wax-seal{
+  display:inline-flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  width:70px;height:70px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, var(--rust), #3a0a05);
+  box-shadow:0 3px 12px rgba(107,45,14,0.5),inset 0 1px 0 rgba(255,255,255,0.1);
+  font-family:'UnifrakturMaguntia',cursive;
+  font-size:1.4rem;color:rgba(240,232,213,0.9);
+  margin:0 auto;
+  position:relative;
+}
+.wax-seal::after{
+  content:'';position:absolute;inset:3px;
+  border:1px solid rgba(240,232,213,0.2);
+  border-radius:50%;
+}
+.wax-row{display:flex;align-items:center;gap:20px;margin:28px 0;}
+.wax-row-text{flex:1;}
+.wax-row-text h4{
+  font-family:'Cormorant SC',serif;
+  font-size:0.82rem;letter-spacing:2px;color:var(--rust);margin-bottom:6px;
+}
+.wax-row-text p{font-size:0.98rem;line-height:1.75;color:#3a2e1e;}
+.tilt-l{transform:rotate(-1.3deg);}.tilt-r{transform:rotate(0.9deg);}
+/* Photo layout types */
+.pg2c{display:grid;grid-template-columns:3fr 2fr;gap:8px;margin:38px -48px;}
+.pg3c{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:30px 0;}
+.pg4c{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin:28px 0;}
+.pg2c-eq{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:28px 0;}
+.pg-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:34px -48px;}
+.bleed{margin:36px -48px;height:260px;position:relative;overflow:hidden;}
+.bleed .pf{height:100%;width:100%;}
+/* Stacked / overlap */
+.photo-stack{position:relative;height:290px;margin:38px 0;}
+.photo-stack .pf{position:absolute;width:54%;height:100%;box-shadow:6px 8px 26px rgba(0,0,0,0.3);}
+.photo-stack .pf:nth-child(1){left:0;top:0;transform:rotate(-2.2deg);z-index:1;}
+.photo-stack .pf:nth-child(2){left:22%;top:18px;transform:rotate(1.3deg);z-index:2;}
+.photo-stack .pf:nth-child(3){right:0;top:-8px;transform:rotate(-0.8deg);z-index:3;}
+.photo-stack .pf:hover{z-index:10;transform:rotate(0) scale(1.05)!important;}
+/* Filmstrip */
+.film-wrap{background:var(--ink);padding:11px 0;margin:36px -48px;position:relative;}
+.film-wrap::before,.film-wrap::after{content:'';position:absolute;left:0;right:0;height:11px;background:repeating-linear-gradient(90deg,transparent 0,transparent 18px,var(--parchment) 18px,var(--parchment) 28px,transparent 28px,transparent 48px);}
+.film-wrap::before{top:0;}.film-wrap::after{bottom:0;}
+.film-inner{display:flex;gap:4px;padding:0 8px;}
+.film-inner .pf{flex:1;min-width:105px;height:175px;}
+/* Polaroid */
+.pol-row{display:flex;gap:18px;justify-content:center;margin:42px 0;flex-wrap:wrap;}
+.pol{background:#f5f0e6;padding:9px 9px 38px;box-shadow:3px 5px 16px rgba(0,0,0,0.18);transform:rotate(var(--pr,0deg));transition:transform 0.3s,box-shadow 0.3s;max-width:165px;}
+.pol:hover{transform:rotate(0deg) scale(1.06);box-shadow:6px 10px 30px rgba(0,0,0,0.28);}
+.pol:nth-child(1){--pr:-3deg;}.pol:nth-child(2){--pr:1.5deg;}.pol:nth-child(3){--pr:-1.2deg;}.pol:nth-child(4){--pr:2.2deg;}.pol:nth-child(5){--pr:-0.8deg;}.pol:nth-child(6){--pr:2.8deg;}.pol:nth-child(7){--pr:-2deg;}.pol:nth-child(8){--pr:1deg;}
+.pol .pf{height:138px;width:100%;}
+.pol-cap{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:0.7rem;color:#5a3020;text-align:center;margin-top:7px;line-height:1.3;}
+/* Mosaic-4 */
+.mosaic4{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:220px 220px;gap:8px;margin:32px 0;}
+.mosaic4 .pf:first-child{grid-row:span 2;}
+/* Mosaic 3-big */
+.mosaic3{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:240px 180px;gap:8px;margin:32px 0;}
+.mosaic3 .pf:first-child{grid-row:span 2;}
+/* Green-toned carved for nature/agriculture */
+.carved-green{background:#1e3018;color:var(--bone);padding:28px 32px;margin:20px 0;position:relative;clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));}
+.carved-green::before{content:'';position:absolute;inset:1px;background:rgba(255,255,255,0.01);clip-path:inherit;pointer-events:none;}
+.carved-green h3{font-family:'Cormorant SC',serif;font-size:0.85rem;letter-spacing:2px;color:#7dba5a;margin-bottom:10px;}
+.carved-green p{font-size:1rem;line-height:1.82;color:rgba(220,240,210,0.82);}
+.carved-green-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:26px 0;}
+/* Feature banner (olive etc) */
+.feature-banner{background:var(--ash);display:grid;grid-template-columns:1fr 1fr 1fr;margin:32px 0;gap:0;}
+.feat-cell{padding:24px 22px;border-right:1px solid rgba(193,125,60,0.15);text-align:center;}
+.feat-cell:last-child{border-right:none;}
+.feat-icon{font-size:2.2rem;display:block;margin-bottom:8px;}
+.feat-name{font-family:'Cormorant SC',serif;font-size:0.75rem;letter-spacing:3px;color:var(--ember);display:block;}
+.feat-desc{font-size:0.88rem;color:rgba(240,232,213,0.65);line-height:1.55;margin-top:6px;}
+/* Edu quote */
+.edu-pq{background:var(--ash);color:var(--bone);padding:46px;margin:36px 0;position:relative;text-align:center;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);}
+.edu-pq .big-q{position:absolute;top:-28px;left:30px;font-family:'UnifrakturMaguntia',cursive;font-size:8rem;color:rgba(193,125,60,0.08);line-height:1;}
+.edu-pq p{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.34rem;line-height:1.8;position:relative;z-index:1;}
+.edu-pq cite{display:block;margin-top:13px;font-style:normal;font-family:'Cormorant SC',serif;font-size:0.58rem;letter-spacing:5px;color:var(--ember);}
+/* School cards */
+.school-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0;}
+.school-card{overflow:hidden;border:1px solid rgba(107,45,14,0.22);}
+.sc-img{height:138px;position:relative;}
+.sc-body{padding:16px;background:#fdf9f2;}
+.sc-body h3{font-family:'Cormorant SC',serif;font-size:0.76rem;letter-spacing:1px;color:var(--rust);margin-bottom:7px;}
+.sc-body p{font-size:0.9rem;line-height:1.6;color:#3a2e1e;}
+/* Alumni */
+.alumni-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0;}
+.alumni{display:flex;gap:13px;padding:16px;background:rgba(107,45,14,0.03);border:1px solid rgba(107,45,14,0.1);align-items:flex-start;}
+.alumni-av{width:42px;height:42px;flex-shrink:0;background:var(--rust);display:flex;align-items:center;justify-content:center;font-family:'UnifrakturMaguntia',cursive;font-size:1.2rem;color:var(--parchment);}
+.alumni-info h4{font-family:'Cormorant SC',serif;font-size:0.76rem;color:var(--ash);margin-bottom:3px;}
+.alumni-info p{font-size:0.86rem;line-height:1.58;color:#5a4a30;}
+/* ── MENU ── */
+#menu-screen{background:radial-gradient(circle at 30% 70%,rgba(107,45,14,0.16),transparent 50%),radial-gradient(circle at 70% 20%,rgba(58,46,30,0.22),transparent 50%),var(--ink);}
+.tablet-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);height:100vh;gap:1px;background:rgba(193,125,60,0.1);}
+.tablet-cell{position:relative;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;padding:32px 36px;background:var(--ink);transition:background 0.5s;}
+.tablet-cell::before{content:'';position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(0.15) saturate(0.5);transition:filter 0.6s,transform 0.8s;transform:scale(1.04);}
+.tablet-cell:hover::before{filter:brightness(0.28) saturate(0.7);transform:scale(1);}
+.tablet-cell::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(193,125,60,0.05),transparent 50%);opacity:0;transition:opacity 0.4s;}
+.tablet-cell:hover::after{opacity:1;}
+.cell-glyph{font-family:'UnifrakturMaguntia',cursive;font-size:3.8rem;color:rgba(193,125,60,0.07);position:absolute;top:18px;right:22px;line-height:1;transition:color 0.4s,transform 0.4s;pointer-events:none;}
+.tablet-cell:hover .cell-glyph{color:rgba(193,125,60,0.18);transform:scale(1.08);}
+.cell-cnt{position:relative;z-index:2;}
+.cell-idx{font-family:'Cormorant SC',serif;font-size:0.5rem;letter-spacing:6px;color:rgba(193,125,60,0.4);display:block;margin-bottom:6px;}
+.cell-title{font-family:'Cormorant SC',serif;font-size:clamp(1rem,2vw,1.5rem);color:var(--bone);letter-spacing:3px;display:block;transition:color 0.3s;}
+.tablet-cell:hover .cell-title{color:var(--ember);}
+.cell-desc{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:0.88rem;color:rgba(240,232,213,0.36);margin-top:6px;line-height:1.5;display:block;transition:color 0.3s;max-width:180px;}
+.tablet-cell:hover .cell-desc{color:rgba(240,232,213,0.6);}
+.cell-line{width:0;height:1px;background:var(--ember);margin-top:12px;transition:width 0.5s;}
+.tablet-cell:hover .cell-line{width:50px;}
+.menu-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;pointer-events:none;text-align:center;}
+.menu-center span{font-family:'UnifrakturMaguntia',cursive;font-size:1.6rem;color:rgba(193,125,60,0.22);display:block;}
+.menu-center::before,.menu-center::after{content:'';display:block;width:1px;height:40px;background:rgba(193,125,60,0.1);margin:0 auto;}
+/* ── DETAIL SCREENS ── */
+.det{background:var(--parchment);color:var(--ink);}
+.det::before{content:'';position:fixed;inset:0;pointer-events:none;background-image:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(28,20,9,0.018) 28px,rgba(28,20,9,0.018) 29px);z-index:0;}
+.det-hero{position:relative;height:290px;overflow:hidden;}
+.det-hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;filter:brightness(0.3) sepia(0.42);animation:slowZ 24s ease-in-out infinite alternate;}
+@keyframes slowZ{from{transform:scale(1);}to{transform:scale(1.09);}}
+.det-hero-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:linear-gradient(to bottom,rgba(7,4,1,0.16),rgba(7,4,1,0.62));}
+.det-hero-lbl{font-family:'Cormorant SC',serif;font-size:0.52rem;letter-spacing:10px;color:var(--ember);margin-bottom:12px;display:block;}
+.det-hero-title{font-family:'UnifrakturMaguntia',cursive;font-size:clamp(2.3rem,6vw,4rem);color:var(--bone);text-shadow:0 2px 36px rgba(193,125,60,0.28);line-height:1;}
+.det-body{max-width:860px;margin:0 auto;padding:50px 48px 100px;position:relative;z-index:1;}
+/* ── RESPONSIVE ── */
+@media(max-width:780px){
+  .tablet-grid{grid-template-columns:1fr 1fr;grid-template-rows:repeat(5,20vh);}
+  .pg,.det-body{padding:60px 22px 100px;}
+  .marginal{float:none;width:100%;margin:0 0 16px;border-left:2px solid var(--rust);}
+  .pg2c,.pg-strip,.film-wrap,.bleed{margin:28px 0;}
+  .pg2c,.pg2c-eq,.carved-row,.carved-green-row,.school-grid,.alumni-grid,.mosaic4,.mosaic3{grid-template-columns:1fr;}
+  .mosaic4 .pf:first-child,.mosaic3 .pf:first-child{grid-row:auto;}
+  .photo-stack{height:200px;}.photo-stack .pf{width:72%;}
+  .feature-banner{grid-template-columns:1fr;}
+  .feat-cell{border-right:none;border-bottom:1px solid rgba(193,125,60,0.15);}
+  .pol-row{gap:14px;}
+}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+
+<!-- ════════════════════════════════════════
+     SCREEN 1 — HERO
+════════════════════════════════════════ -->
+<section id="hero" class="screen active">
+  <div class="hero-img"></div>
+  <div class="hero-torn"></div>
+  <div class="hero-frame"><div class="hero-corner-br"></div></div>
+  <div class="hero-cnt">
+    <span class="hero-eye">MEMORIA E TOKËS  ·  TRASHËGIMIA KULTURORE</span>
+    <h1 class="hero-title">Sulovë</h1>
+    <p class="hero-sub">"Një gotë raki dhe një buzëqeshje — kështu fillon çdo histori në Sulovë."</p>
+    <div class="hero-cta">
+      <button class="btn-ember" onclick="navigo('historia')"><span>NIS UDHËTIMIN</span></button>
+    </div>
+  </div>
+  <div class="rune-ticker">
+    <div class="rune-track">
+      <span class="rune-item">SULOVA E POSHTME</span><span class="rune-item">KALAJA E QAFËS</span><span class="rune-item">GORICA E ÇOBANIT</span><span class="rune-item">BAZILIKA E KLOSIT</span><span class="rune-item">DIALEKTI UNIK</span><span class="rune-item">15 FSHATRA</span><span class="rune-item">ZEQINE ARIZA</span><span class="rune-item">TRASHËGIMI ILIRE</span><span class="rune-item">DASMAT SULOVARE</span><span class="rune-item">SULOVA E POSHTME</span><span class="rune-item">KALAJA E QAFËS</span><span class="rune-item">GORICA E ÇOBANIT</span><span class="rune-item">BAZILIKA E KLOSIT</span><span class="rune-item">DIALEKTI UNIK</span><span class="rune-item">15 FSHATRA</span><span class="rune-item">ZEQINE ARIZA</span><span class="rune-item">TRASHËGIMI ILIRE</span><span class="rune-item">DASMAT SULOVARE</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     SCREEN 2 — HISTORIA (Hyrja)
+════════════════════════════════════════ -->
+<section id="historia" class="screen parch">
+  <button class="back-btn" onclick="navigo('hero')">✕ KTHEHU</button>
+  <div class="sw"><div class="pg">
+    <div class="ch-hdr">
+      <span class="ch-num">I</span>
+      <span class="ch-lbl">HYRJA</span>
+      <h1 class="ch-title">Sulova — një rrëfim që jeton</h1>
+    </div>
+    <div class="orn"><div class="orn-dia"></div></div>
+
+    <div class="pg2c">
+      <div class="pf tilt-l" style="min-height:270px;"><img src="https://i.ibb.co/wN2vC0Rx/IMG-5859.jpg" alt="Panoramë Sulovës"><div class="pf-cap">PANORAMË — SULOVA</div></div>
+      <div class="pf tilt-r" style="min-height:270px;"><img src="https://i.ibb.co/xtL8CXNM/IMG-6753.jpg" alt="FSHATI MOLLAS" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">FSHATI MOLLAS</div></div>
+    </div>
+
+    <div class="marginal">"Ajo jeton në çdo emër fshati, në çdo përrua, në çdo gur rruge që ka ndjerë hapat e njerëzve ndër shekuj."</div>
+
+    <p class="bt dropcap">Sulova nuk është thjesht një pikë e heshtur mbi hartën e Shqipërisë; ajo është një rrëfim i gjallë, një këngë e vjetër që jehon nëpër shekuj dhe mbart kujtesën e brezave. Është vendi ku toka flet me gjurmët e të parëve, ku era prek kodrat me të njëjtën butësi me të cilën koha ka prekur historinë e saj. Kjo trevë mban mbi supe hijen krenare të Ilirëve të lashtë, gjurmët e qytetërimit bizantin dhe kujtimet e çdo epoke që ka kaluar mbi të pa mundur kurrë t'ia shuajë shpirtin.</p>
+    <p class="bt">Në Sulovë, jeta nuk ka reshtur asnjëherë. Traditat janë ruajtur si një amanet i shenjtë dhe janë përcjellë brez pas brezi, si një dritë që nuk lejohet të fiket. Historia e saj nuk jeton vetëm në faqet e librave apo në dokumentet e vjetra; ajo lexohet në çdo emër fshati, në çdo përrua që gjarpëron mes kodrave, në çdo gur rruge që ka ndjerë hapat e njerëzve ndër shekuj.</p>
+    <p class="bt">Kjo krahinë përbëhet nga <em class="hl">15 fshatra</em> dhe ndahet në dy njësi administrative, <em class="hl">Mollasi</em> dhe <em class="hl">Klosi</em>, duke mbledhur mbi <em class="hl">12,500 banorë</em>. Është një komunitet i lidhur fort me tokën, me kujtesën historike dhe me njëri-tjetrin, sikur vetë rrënjët e tyre të jenë ngulur thellë në të njëjtën tokë.</p>
+
+    <div class="stamp-row">
+      <div class="stamp"><span class="stamp-num">15</span><span class="stamp-lbl">Fshatra</span></div>
+      <div class="stamp"><span class="stamp-num">2</span><span class="stamp-lbl">Njësi administrative</span></div>
+      <div class="stamp"><span class="stamp-num">12.5k</span><span class="stamp-lbl">Banorë</span></div>
+    </div>
+
+    <div class="sec-div"><span class="sec-sym">🏛</span></div>
+    <div class="sub-head">Historia e Sulovës</div>
+
+    <p class="bt">Studiues dhe historianë kanë zbuluar se Sulova ruan gjurmë të fuqishme të qytetërimeve të lashta, ku ndikimet <em class="hl">ilire, romake dhe bizantine</em> vazhdojnë të jetojnë edhe sot, të fshehura në toponime, në rrëfenja dhe në kujtesën kolektive të banorëve.</p>
+    <p class="bt">Edhe vetë emri <em class="hl">"Sulovë"</em> tingëllon si një thirrje e ardhur nga lashtësia. Mendohet se ai vjen nga latinishtja, ku <em class="hl">"SUL"</em> do të thotë "mbi" dhe <em class="hl">"OVE"</em> "përtej". Mollasi lidhet me fisin e lashtë të <em class="hl">Molosëve</em>, ndërsa përroi i Shicës mbart kuptimin e një kufiri ndarës. Në territorin e fshatit Dasar kanë jetuar <em class="hl">Dasaretët</em>, një fis ilir i njohur për prodhimin e drithërave dhe mbarështimin e kafshëve.</p>
+    <p class="bt">Lagjja <em class="hl">Shtodër</em> mban ende gjurmët e besimit të krishterë dhe lidhet me figurën e Shën Teodorit. Rrënojat e vjetra të kishave dhe varrezave flasin në heshtje për një kohë tjetër. Dialekti karakteristik i kësaj zone, me përdorimin e zanores <em class="hl">"o"</em> në vend të <em class="hl">"ë"</em>, e bën të dallueshme dhe plot ngjyra shprehëse. Edhe theksimi i zanores "a" në fund të fjalive pyetëse, si në shprehjen <em class="hl">"Do vish a?"</em>, është tipar i veçantë i komunikimit të banorëve.</p>
+    <p class="bt">Për shekuj me radhë, Sulova ka kaluar nën sundimin romak dhe më pas atë osman, por asnjë pushtim nuk ka mundur t'i zbehë identitetin. Ajo ka ditur gjithmonë të ruajë karakterin, traditat dhe krenarinë e saj, duke mbetur një tokë ku historia dhe shpirti i njerëzve jetojnë ende së bashku.</p>
+
+    <div class="pg-strip">
+      <div class="pf" style="min-height:140px;"><img src="https://i.ibb.co/MDWNs0hh/IMG-5646.jpg" alt="Sulova"><div class="pf-cap">SULOVA</div></div>
+      <div class="pf" style="min-height:140px;"><img src="https://i.ibb.co/NnQhryw9/IMG-5626.jpg" alt="SHTODËR" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">SHTODËR</div></div>
+      <div class="pf" style="min-height:140px;"><img src="https://i.ibb.co/7dpLqGTL/IMG-6751.jpg" alt="KLOSI" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">KLOSI</div></div>
+      <div class="pf" style="min-height:140px;"><img src="https://i.ibb.co/gLKcSSK9/IMG-6752.jpg" alt="LINASI" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">LINASI</div></div>
+    </div>
+
+    <div class="wax-q"><p>"Çdo emër fshati, çdo përrua dhe çdo rrënojë kishë mbart pas vetes një histori romake, bizantine apo ilire."</p><cite>— Hulumtime Etnografike</cite></div>
+
+    <!-- VINTAGE POSTCARD -->
+    <div class="vintage-card">
+      <div class="vintage-card-stamp"><span>🏛</span><span>SULOVA</span></div>
+      <div class="vintage-card-inner">
+        <span class="vc-title">Sulova</span>
+        <p class="vc-text">Krahina historike shqiptare — ku çdo gur flet dhe çdo gjë ka histori. Nga ilirët e lashtë tek brezat e sotëm, filli nuk ka këputur kurrë.</p>
+      </div>
+    </div>
+
+    <!-- MAP PINS — fshatra -->
+    <div class="sub-head">Fshatrat e Sulovës</div>
+    <div class="map-pins">
+      <span class="map-pin">Mollasi</span><span class="map-pin">Klosi</span>
+      <span class="map-pin">Frashëri</span><span class="map-pin">Lumasi</span>
+      <span class="map-pin">Selita</span><span class="map-pin">Gostima</span>
+      <span class="map-pin">Linasi</span><span class="map-pin">Shtodri</span>
+      <span class="map-pin">Qafa</span><span class="map-pin">Gorica e Çobanit</span>
+    </div>
+
+    <!-- FACTS RIBBON -->
+    <div class="facts-ribbon">
+      <div class="fact-r"><span class="fact-r-num">15</span><span class="fact-r-lbl">Fshatra</span></div>
+      <div class="fact-r"><span class="fact-r-num">2</span><span class="fact-r-lbl">Njësi Administrative</span></div>
+      <div class="fact-r"><span class="fact-r-num">12,500+</span><span class="fact-r-lbl">Banorë</span></div>
+      <div class="fact-r"><span class="fact-r-num">VI</span><span class="fact-r-lbl">Shek. · Kalaja</span></div>
+    </div>
+
+    <button class="cont-btn" onclick="navigo('menu-screen')">VAZHDO NË KRERËT →</button>
+  </div></div>
+</section>
+
+<!-- ════════════════════════════════════════
+     MENU (3×3 grid, 9 sections)
+════════════════════════════════════════ -->
+<section id="menu-screen" class="screen">
+  <button class="back-btn" onclick="navigo('historia')">✕ KTHEHU</button>
+  <div class="menu-center"><span>Sulovë</span></div>
+  <div class="tablet-grid">
+    <div class="tablet-cell" style="background-image:none;" onclick="navigo('arkeologjia')">
+      <span class="cell-glyph">▲</span>
+      <div class="cell-cnt"><span class="cell-idx">— 01 —</span><span class="cell-title">Arkeologjia</span><span class="cell-desc">Fortesa, akropole e dëshmi të lashtësisë</span><div class="cell-line"></div></div>
+    </div>
+    <div class="tablet-cell" onclick="navigo('tradita')">
+      <span class="cell-glyph">◆</span>
+      <div class="cell-cnt"><span class="cell-idx">— 02 —</span><span class="cell-title">Tradita & Kultura</span><span class="cell-desc">Folklori, veshjet e shpirti sulovar</span><div class="cell-line"></div></div>
+    </div>
+    <div class="tablet-cell" onclick="navigo('dasmat')">
+      <span class="cell-glyph">♡</span>
+      <div class="cell-cnt"><span class="cell-idx">— 03 —</span><span class="cell-title">Dasmat Tradicionale</span><span class="cell-desc">Ritualet e dasmës sulovare</span><div class="cell-line"></div></div>
+    </div>
+    <div class="tablet-cell" onclick="navigo('mikpritja')">
+      <span class="cell-glyph">❧</span>
+      <div class="cell-cnt"><span class="cell-idx">— 04 —</span><span class="cell-title">Mikpritja & Shija</span><span class="cell-desc">Shija e tokës e dolia sulovare</span><div class="cell-line"></div></div>
+    </div>
+    <div class="tablet-cell" onclick="navigo('arsimi')">
+      <span class="cell-glyph">✦</span>
+      <div class="cell-cnt"><span class="cell-idx">— 05 —</span><span class="cell-title">Arsimi</span><span class="cell-desc">Shkollat, mësuesit e dija sulovare</span><div class="cell-line"></div></div>
+    </div>
+    <div class="tablet-cell" onclick="navigo('bujqesia')">
+      <span class="cell-glyph">🌾</span>
+      <div class="cell-cnt"><span class="cell-idx">— 06 —</span><span class="cell-title">Bujqësia</span><span class="cell-desc">Sera, ulliri e agroindustria</span><div class="cell-line"></div></div>
+    </div>
+    <div class="tablet-cell" onclick="navigo('natyra')">
+      <span class="cell-glyph">🌿</span>
+      <div class="cell-cnt"><span class="cell-idx">— 07 —</span><span class="cell-title">Natyra & Turizmi</span><span class="cell-desc">Peizazhe, fauna e gastronomia</span><div class="cell-line"></div></div>
+    </div>
+    <div class="tablet-cell" onclick="navigo('shpirti')">
+      <span class="cell-glyph">❤</span>
+      <div class="cell-cnt"><span class="cell-idx">— 08 —</span><span class="cell-title">Shpirti i Sulovës</span><span class="cell-desc">Zemra e kësaj treve</span><div class="cell-line"></div></div>
+    </div>
+    <div class="tablet-cell" onclick="navigo('gatimet')">
+      <span class="cell-glyph">🍽</span>
+      <div class="cell-cnt"><span class="cell-idx">— 09 —</span><span class="cell-title">Gatimet Tradicionale</span><span class="cell-desc">Kuzhina sulovare, ëmbëlsirat e pijet</span><div class="cell-line"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     ARKEOLOGJIA
+════════════════════════════════════════ -->
+<section id="arkeologjia" class="screen det">
+  <button class="back-btn" onclick="navigo('menu-screen')">✕ KTHEHU</button>
+  <div class="sw">
+    <div class="det-hero"><div class="det-hero-bg" style="background:url('https://placehold.co/1600x400/0e0b05/c17d3c') center/cover;"></div><div class="det-hero-txt"><span class="det-hero-lbl">DËSHMI TË LASHTËSISË</span><span class="det-hero-title">Arkeologjia</span></div></div>
+    <div class="det-body">
+      <div class="sec-div"><span class="sec-sym">⚔</span></div>
+
+      <!-- Gorica e Çobanit -->
+      <div class="sub-head">Gorica e Çobanit</div>
+      <div class="pg2c-eq" style="margin:28px 0;">
+        <div class="pf" style="height:250px;"><img src="https://i.ibb.co/kgkqkhb8/IMG-5745.png" alt="GORICA E ÇOBANIT, 811m" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">GORICA E ÇOBANIT, 811m</div></div>
+        <div class="pf" style="height:250px;"><img src="https://i.ibb.co/MDNSMTjN/IMG-6759.jpg" alt="VARREZA ME KRYQE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">VARREZA ME KRYQE</div></div>
+      </div>
+      <p class="bt"><em class="hl">"Gorica e Çobanit"</em> është pika më e lartë e Sulovës, me një lartësi prej <em class="hl">811 metrash</em> mbi nivelin e detit. Në këtë vend janë zbuluar varreza të hershme, të pajisura me kryqe, si dhe rrënoja kishash, të cilat dëshmojnë se këtu kanë jetuar banorë të besimit të krishterë.</p>
+      <p class="bt">Këto gjetje arkeologjike tregojnë për një prani të hershme të komuniteteve të krishtera në këtë zonë dhe për rëndësinë që ka pasur Gorica e Çobanit në historinë fetare të Sulovës.</p>
+
+      <div class="sec-div"><span class="sec-sym">✝</span></div>
+      <!-- Bazilika e Klosit -->
+      <div class="sub-head">Bazilika e Klosit</div>
+      <div class="photo-stack">
+        <div class="pf"><img src="https://i.ibb.co/Swbth8sv/IMG-6760.jpg" alt="BAZILIKA E KLOSIT" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">BAZILIKA E KLOSIT</div></div>
+        <div class="pf"><img src="https://i.ibb.co/hFvR4b7H/IMG-6761.jpg" alt="FOTO VITET '60" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">MURET — ~1m LARTËSI</div></div>
+        <div class="pf"><img src="https://i.ibb.co/xqtCb22G/IMG-6757.jpg" alt="RRUGA EGNATIA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">RRUGA PËR NË KALA</div></div>
+      </div>
+      <p class="bt dropcap">Bazilika e Klosit në krahinën e Sulovës është një nga dëshmitë më të rëndësishme të kulturës dhe qytetërimit mesjetar në këtë zonë. Studiuesi <em class="hl">Aleksandër Meksi</em> thekson se kishat e kësaj periudhe i përkasin <em class="hl">shekujve VII–XIII</em>, kohë e lulëzimit të ndërtimeve të kultit të krishterë.</p>
+      <p class="bt">Bazilika ndodhej pranë kalasë antike të Qafës, afër fshatit Klos të Elbasanit, në një vendbanim të vjetër që dikur ishte qytet i rëndësishëm i <em class="hl">dinastisë së Muzakajve</em> dhe një qytezë bizantine. Zona njihej për natyrën e pasur, vreshtat, ullinjtë dhe dendësinë e banesave.</p>
+      <p class="bt">Sot kanë mbetur vetëm fragmente muresh, pasi ndërtesa është dëmtuar nga koha, zjarret, tërmetet, braktisja dhe shkatërrimet gjatë periudhës komuniste. Një histori gojore tregon se një <em class="hl">epidemi kolere</em> detyroi banorët të largoheshin, duke sjellë rrënimin gradual të vendbanimit dhe të kishës.</p>
+      <p class="bt">Bazilika ishte <em class="hl">trenefëshe</em>, me absidë gjysmëharkore, mure me afreske dhe dysheme të shtruar me pllaka guri në formë mozaiku shumëngjyrësh. Megjithëse popullsia u kthye kryesisht në fenë myslimane, banorët vazhduan të ruanin respektin për këtë vend të shenjtë, duke ndezur qirinj dhe kryer rite tradicionale edhe gjatë periudhës së komunizmit.</p>
+
+      <div class="sec-div"><span class="sec-sym">🏰</span></div>
+      <!-- Kalaja e Qafës -->
+      <div class="sub-head">Kalaja e Qafës</div>
+      <div class="mosaic4">
+        <div class="pf"><img src="https://i.ibb.co/hRdpxpPy/IMG-6763.jpg" alt="KALAJA E QAFËS, 624m" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">KALAJA E QAFËS, 624m</div></div>
+        <div class="pf"><img src="https://i.ibb.co/hFjRzH7Q/IMG-6764.jpg" alt="KULLAT MBROJTËSE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">KULLAT MBROJTËSE</div></div>
+        <div class="pf"><img src="https://i.ibb.co/YFBDDcgG/IMG-5895.jpg" alt="MURET — 1.5–2m" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">MURET — 1.5–2m TRASHËSI</div></div>
+        <div class="pf"><img src="https://i.ibb.co/Tx9tgGjY/IMG-6765.jpg" alt="SHTËPITË E VJETRA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">ARTEFAKTE</div></div>
+        <div class="pf"><img src="https://i.ibb.co/7xgRxfzR/IMG-6768.jpg" alt="MONEDHA JUSTINIANI" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">MONEDHA SHEK. VI</div></div>
+      </div>
+      <p class="bt dropcap">Kalaja e Qafës është ndërtuar mbi pjesën më të ngritur të një shkëmbi, në një lartësi prej <em class="hl">624 metrash</em> mbi nivelin e detit. Ajo shtrihet në një sipërfaqe ndërtimi <em class="hl">mbi 10,000 m²</em> dhe përbëhet nga <em class="hl">pesë kulla</em> me forma të ndryshme.</p>
+      <p class="bt">Muret rrethuese, me një trashësi prej 1.5 deri në 2 metra, rrethojnë pjesën e brendshme, ku janë zbuluar edhe 13 shtëpi banimi të vogla. Materiali ndërtimor është gur gëlqeror i përpunuar në formë rrasash, të lidhura me llaç, çka tregon se kalaja i përket periudhës së sundimit bizantin, rreth <em class="hl">shekullit VI</em>.</p>
+      <p class="bt">Gjatë gërmimeve janë zbuluar edhe monedha që i përkasin periudhës së perandorit <em class="hl">Justinian I (527–565)</em>, duke konfirmuar datimin e saj historik. Studiues të ndryshëm theksojnë rëndësinë ushtarake të kalasë — ajo shërbente për të kontrolluar lëvizjet e ushtrive armike dhe për të mbrojtur banorët nga sulmet e papritura.</p>
+      <p class="bt">Nga pozicioni i saj, mund të vëzhgohen zona të gjera përreth: nga mali i Tomorrit në lindje, deri në qytetet si Gramshi, Maliqi dhe Korça, si dhe drejt veriut e perëndimit deri në Cërrik, Elbasan, Peqin, Rrogozhinë dhe Kuçovë.</p>
+      <div class="carved-row">
+        <div class="carved"><h3>Familja Muzakajve</h3><p>Me kalimin e kohës, pas dobësimit të Perandorisë Bizantine, kalaja kaloi në duar të ndryshme dhe u zotërua nga familja feudale e Muzakajve, por nuk arriti t'i rezistonte pushtimeve osmane.</p></div>
+        <div class="carved"><h3>Inventari Arkeologjik</h3><p>Gërmimet zbuluan vegla pune, armë (shigjeta, shpata, mburoja), stoli, enë balte, qeramikë, amfora dhe pitosa — pasuri e madhe historike.</p></div>
+      </div>
+
+      <div class="film-wrap">
+        <div class="film-inner">
+          <div class="pf"><img src="https://i.ibb.co/fVBYS979/IMG-5628.png" alt="PAMJE AJRORE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">PAMJE AJRORE</div></div>
+          <div class="pf"><img src="https://i.ibb.co/9HGpxq52/IMG-5895.jpg" alt="GËRMIME" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">VEGLA TË GJETURA</div></div>
+          <div class="pf"><img src="https://i.ibb.co/ymPszZQm/IMG-5748.jpg" alt="QERAMIKË ANTIKE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">QERAMIKË ANTIKE</div></div>
+          <div class="pf"><img src="https://i.ibb.co/xqtCb22G/IMG-6757.jpg" alt="RRUGA EGNATIA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">AMFORA</div></div>
+          <div class="pf"><img src="https://i.ibb.co/hRdpxpPy/IMG-6763.jpg" alt="KALAJA E QAFËS" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">GËRMIME ARKEOLOGJIKE</div></div>
+        </div>
+      </div>
+      <!-- VINTAGE QUOTE -->
+      <div class="guillmet-q">
+        <p>Kalaja e Qafës nuk ishte thjesht një fortesë — ishte syri i Sulovës, vendi nga i cili vëzhgoheshin lëvizjet e historisë.</p>
+        <cite>— Trashëgimia Arkeologjike e Krahinës</cite>
+      </div>
+
+      <!-- WAX SEALS row -->
+      <div class="wax-row">
+        <div class="wax-seal">VI</div>
+        <div class="wax-row-text">
+          <h4>Shekulli VI · Justiniani I</h4>
+          <p>Monedhat e gjetura gjatë gërmimeve konfirmojnë datimin e Kalasë së Qafës në periudhën e perandorit Justinian I (527–565).</p>
+        </div>
+      </div>
+      <div class="wax-row">
+        <div class="wax-seal">VII</div>
+        <div class="wax-row-text">
+          <h4>Shek. VII–XIII · Bazilika</h4>
+          <p>Bazilika e Klosit dhe kishat e tjera i përkasin periudhës së lulëzimit të krishterimit në Sulovë, sipas Prof. Aleksandër Meksit.</p>
+        </div>
+      </div>
+
+      <!-- INK STAMP -->
+      <div style="text-align:center;margin:28px 0;">
+        <span class="ink-stamp">TRASHËGIMI E MBROJTUR</span>
+      </div>
+
+      <div class="dtags"><span class="dtag">Justiniani I</span><span class="dtag">Bizantine</span><span class="dtag">Ilire</span><span class="dtag">Romake</span><span class="dtag">Muzakajt</span><span class="dtag">Shek. VI</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     TRADITA & KULTURA
+════════════════════════════════════════ -->
+<section id="tradita" class="screen det">
+  <button class="back-btn" onclick="navigo('menu-screen')">✕ KTHEHU</button>
+  <div class="sw">
+    <div class="det-hero"><div class="det-hero-bg" style="background:url('https://placehold.co/1600x400/050e05/c1a03c') center/cover;"></div><div class="det-hero-txt"><span class="det-hero-lbl">SHPIRTI DHE FOLKLORI</span><span class="det-hero-title">Tradita & Kultura</span></div></div>
+    <div class="det-body">
+      <div class="sec-div"><span class="sec-sym">♪</span></div>
+
+      <p class="bt dropcap">Kultura në Sulovë është si një lumë i lashtë që rrjedh qetësisht ndër shekuj, duke mbartur me vete kujtime, zakone dhe tinguj që nuk shuhen kurrë. Ajo jeton në zemrat e njerëzve, në sofrat e mbushura plot, në këngët që ngrihen natën vonë dhe në vallet që tundin tokën me ritmin e gëzimit. Çdo traditë këtu ka shpirt, çdo zakon ka një histori dhe çdo festë duket sikur zgjon vetë kujtesën e të parëve.</p>
+      <p class="bt">Folklori zë një vend të shenjtë në jetën e sulovarëve. Këngët popullore këndohen me mall e krenari, si një rrëfim i gjallë për vendlindjen. Vallet tradicionale, të shoqëruara me daulle e klarinetë, krijojnë një atmosferë magjike ku të rinjtë dhe të moshuarit bëhen një.</p>
+
+      <!-- Photos: këngëtarë dhe grupe -->
+      <div class="pg2c-eq" style="margin:28px 0;">
+        <div class="pf tilt-l" style="height:260px;"><img src="https://i.ibb.co/jvzz3bTs/IMG-6781.png" alt="BURRAT DUKE KËNDUAR" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">BURRAT DUKE KËNDUAR</div></div>
+        <div class="pf tilt-r" style="height:260px;"><img src="https://i.ibb.co/WpqMgt9v/IMG-6776.png" alt="EDUART DËMA — KËNGA E SULOVËS" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">EDUART DËMA — KËNGA E SULOVËS</div></div>
+      </div>
+
+      <!-- Polaroids: valle, veshje, festa -->
+      <div class="pol-row">
+        <div class="pol"><div class="pf"><img src="https://i.ibb.co/LdqPpgp7/IMG-6821.png" alt="MISH NË NATYRË" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"></div><div class="pol-cap">Mish në natyrë</div></div>
+        <div class="pol"><div class="pf"><img src="https://i.ibb.co/j9W4B2YC/IMG-6775.png" alt="VËLLEZËRIT JANCA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"></div><div class="pol-cap">Vëllezërit Janca</div></div>
+        <div class="pol"><div class="pf"><img src="https://i.ibb.co/kVnjh3Sb/IMG-6784.png" alt="VESHJE POPULLORE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"></div><div class="pol-cap">Veshje popullore</div></div>
+        <div class="pol"><div class="pf"><img src="https://i.ibb.co/WpqMgt9v/IMG-6776.png" alt="KËNGA E SULOVËS" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"></div><div class="pol-cap">Kënga e Sulovës</div></div>
+      </div>
+
+      <div class="wax-q"><p>"Gëzofsh të ritë" — jo thjesht urim, por shprehja e dashamirësisë sulovare që trashëgohet brez pas brezi.</p></div>
+
+      <!-- VITI I RI -->
+      <div class="sec-div"><span class="sec-sym">🎆</span></div>
+      <div class="sub-head">Viti i Ri — Festa e Zemrës</div>
+      <p class="bt">Viti i Ri është festa më e dashur për sulovarët. Atmosfera nis herët, që më <em class="hl">6 dhjetor</em>, kur familjet zbukurojnë shtëpitë me drita shumëngjyrëshe. Gratë fillojnë përgatitjen e <em class="hl">bakllavasë tradicionale me arra</em> disa ditë më parë, ndërsa më 30 dhjetor çdo cep i shtëpisë pastrohet me kujdes — besohet se kështu largohet fati i vjetër.</p>
+      <p class="bt">Mëngjesin e 31 dhjetorit theret gjeli i detit ose rika dhe përgatitet <em class="hl">përsheshi tradicional</em>. Tavolina mbushet plot me mish, meze, verë, birrë dhe raki, ndërsa shtëpia gumëzhin nga zërat e familjarëve. Dollitë ngrihen pa fund dhe gëzimi ndihet në çdo qoshe. Kur ora afrohet drejt mesnatës, qielli mbushet me fishekzjarre.</p>
+      <div class="pg3c" style="margin:28px 0;">
+        <div class="pf" style="height:200px;"><img src="https://i.ibb.co/XrrPBgR6/IMG-6894.jpg" alt="VITI I RI SULOVA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">VITI I RI</div></div>
+        <div class="pf" style="height:200px;"><img src="https://i.ibb.co/jkrFtt4F/IMG-6895.jpg" alt="FESTIMET" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">FESTIMET</div></div>
+        <div class="pf" style="height:200px;"><img src="https://i.ibb.co/JFvcCWCQ/IMG-6899.jpg" alt="BAKLLAVAJA TRADICIONALE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">BAKLLAVAJA TRADICIONALE</div></div>
+      </div>
+
+      <!-- DITA E VERËS -->
+      <div class="sec-div"><span class="sec-sym">🌸</span></div>
+      <div class="sub-head">Dita e Verës — 14 Mars</div>
+      <p class="bt">Dita e Verës sjell aromën e pranverës dhe gjallërinë e natyrës. Nis më <em class="hl">13 mars</em>, "nata e verës", kur përgatiten <em class="hl">bollokumet</em> — ëmbëlsira tradicionale me aromën e gjalpit. Shtëpia pastrohet, të gjithë lahen para gjumit: "vera nuk duhet të të gjejë të papastër".</p>
+      <p class="bt">Mëngjesin e 14 marsit fëmijët ecin grupe-grupe nëpër rrugë mes të qeshurave. Nga dreka, familjet dalin në natyrë — burrat pjekin mishin, gratë shtrojnë mezetë, fëmijët vrapojnë mes barit. Pas ngrënies, të gjithë ngrihen për të kërcyer e kënduar, pleqtë këndojnë këngë të vjetra dhe atmosfera bashkon qiellin, tokën dhe njerëzit.</p>
+      <div class="pg3c" style="margin:28px 0;">
+        <div class="pf" style="height:200px;"><img src="https://i.ibb.co/93nr9PxL/IMG-6900.jpg" alt="BALLOKUMET" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">BALLOKUMET</div></div>
+        <div class="pf" style="height:200px;"><img src="https://i.ibb.co/h1V5N5yH/a76d92f5-4bd4-4b6e-96ba-52ef04ac0ceb.jpg" alt="KLASA X-A NË PANAIR" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">KLASA X-A NË PANAIRIN E DITËS SË VERËS</div></div>
+        <div class="pf" style="height:200px;"><img src="https://i.ibb.co/Y7SG6VCL/IMG-5132.jpg" alt="TRYEZA E DITËS SË VERËS" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">TRYEZA E DITËS SË VERËS</div></div>
+      </div>
+
+      <!-- VESHJET -->
+      <div class="sec-div"><span class="sec-sym">👘</span></div>
+      <div class="sub-head">Veshjet Tradicionale Sulovare</div>
+      <p class="bt">Traditat e veshjeve popullore të Sulovës tregojnë historinë, kulturën dhe mënyrën e jetesës. Dikur ato ishin shenjë dalluese e krahinës etnografike dhe u përdorën gjerësisht deri në <em class="hl">vitet '50 të shekullit XX</em>, ndërsa më vonë u zëvendësuan gradualisht me veshje moderne.</p>
+      <p class="bt">Veshjet punoheshin me dorë nga gratë, me <em class="hl">lesh, pambuk dhe liri</em> të endur në avlëmend. Kultivimi i lirit ka qenë shumë i rëndësishëm — dëshmohet nga emra vendesh si <em class="hl">"Lëmi i Lirit"</em> apo <em class="hl">"Bregu i Lirit"</em>. Për burrat: guna, tirqet, shallvaret, xhedikët dhe fustanella në festa. Për gratë: linja e gjatë, përparësja me motive shumëngjyrëshe, lëvera e kokës me motive rombike dhe jeleku i qëndisur me fije ari.</p>
+      <div class="pg3c" style="margin:28px 0;">
+        <div class="pf" style="height:240px;"><img src="https://i.ibb.co/xpfmz9T/IMG-6896.png" alt="VESHJET SULOVARE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">VESHJET SULOVARE</div></div>
+        <div class="pf" style="height:240px;"><img src="https://i.ibb.co/wFngXSRz/IMG-6897.png" alt="KOSTUME POPULLORE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">KOSTUME POPULLORE</div></div>
+        <div class="pf" style="height:240px;"><img src="https://i.ibb.co/zVCCP51Z/IMG-6898.png" alt="VESHJA TRADICIONALE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">VESHJA TRADICIONALE</div></div>
+      </div>
+      <p class="bt">Sot veshjet popullore ruhen si pjesë e <em class="hl">trashëgimisë kulturore</em> dhe përdoren kryesisht në festa popullore, dasma dhe festivale folklorike, duke mbetur një thesar i çmuar për brezat e ardhshëm.</p>
+
+      <!-- Vintage dialect card -->
+      <div class="vintage-card">
+        <div class="vintage-card-stamp"><span>🗣</span><span>DIALEKTI</span></div>
+        <div class="vintage-card-inner">
+          <span class="vc-title">Dialekti Sulovar</span>
+          <div class="news-cols">Dialekti sulovar është thesar i gjuhës shqipe. Zanorja "o" në vend të "ë" standarde i jep melodicitet të veçantë. Fjalë si "bo" (bëj), "mo" (më), "bon" (bën) janë shprehje të identitetit gjuhësor. Edhe "Do vish a?" — pyetje e thjeshtë, por aq karakteristike sa e dallon menjëherë sulovarin.</div>
+        </div>
+      </div>
+      <div class="map-pins">
+        <span class="map-pin">Valle Tradicionale</span>
+        <span class="map-pin">Viti i Ri</span>
+        <span class="map-pin">Dita e Verës</span>
+        <span class="map-pin">Veshjet Popullore</span>
+        <span class="map-pin">Zeqine Ariza</span>
+        <span class="map-pin">Musa Çala</span>
+        <span class="map-pin">70 Nusat</span>
+        <span class="map-pin">Dialekti Unik</span>
+      </div>
+      <div class="dtags"><span class="dtag">Valle</span><span class="dtag">Folklor</span><span class="dtag">Viti i Ri</span><span class="dtag">Dita e Verës</span><span class="dtag">Veshjet</span><span class="dtag">Dialekt</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     DASMAT TRADICIONALE SULOVARE
+════════════════════════════════════════ -->
+<section id="dasmat" class="screen det">
+  <button class="back-btn" onclick="navigo('menu-screen')">✕ KTHEHU</button>
+  <div class="sw">
+    <div class="det-hero"><div class="det-hero-bg" style="background:url('https://placehold.co/1600x400/1a0a10/c17d8b') center/cover;"></div><div class="det-hero-txt"><span class="det-hero-lbl">TRADITA E SHENJTË</span><span class="det-hero-title">Dasmat Tradicionale Sulovare</span></div></div>
+    <div class="det-body">
+      <div class="sec-div"><span class="sec-sym">♡</span></div>
+
+      <!-- Photo wall — 8 slots -->
+      <div class="mosaic4" style="grid-template-rows:200px 200px;">
+        <div class="pf"><img src="https://i.ibb.co/kVnjh3Sb/IMG-6784.png" alt="VESHJE POPULLORE NË DASMË" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">DASMA — CEREMONIA</div></div>
+        <div class="pf"><img src="https://i.ibb.co/vK72gjw/IMG-6803.png" alt="AHENGU" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">AHENGU PARA DASMËS</div></div>
+        <div class="pf"><img src="https://i.ibb.co/nMWL6f12/IMG-6614.png" alt="FUSTANI I LUMTURISË" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">FUSTANI I LUMTURISË</div></div>
+        <div class="pf"><img src="https://i.ibb.co/s9P3GS7Q/IMG-6613.png" alt="DUKE I KËNDUAR NUSES" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">GRATË BRENDA DUKE KËNDUAR</div></div>
+        <div class="pf"><img src="https://i.ibb.co/5hpK83jV/IMG-6785.png" alt="BURRAT DUKE KËNDUAR JASHTË" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">BURRAT DUKE KËNDUAR JASHTË</div></div>
+      </div>
+
+      <div class="pol-row" style="margin:32px 0;">
+        <div class="pol"><div class="pf"><img src="https://i.ibb.co/bDFPk0X/IMG-6792.png" alt="PRAGU ME MJALT" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"></div><div class="pol-cap">Lyerja e pragut me mjaltë</div></div>
+        <div class="pol"><div class="pf"><img src="https://i.ibb.co/vK72gjw/IMG-6803.png" alt="AHENGU" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"></div><div class="pol-cap">Ahengu</div></div>
+        <div class="pol"><div class="pf"><img src="https://i.ibb.co/kVnjh3Sb/IMG-6784.png" alt="VESHJE POPULLORE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"></div><div class="pol-cap">Veshje popullore</div></div>
+      </div>
+
+      <p class="bt dropcap">Një ndër traditat më të rëndësishme, të cilat respektohen me përpikmëri, janë dasmat. Ato fillojnë që <em class="hl">një javë përpara datës</em> së tyre. Në oborret e shtëpive dëgjohet vetëm muzikë dhe njerëz të lumtur, duke kënduar, kërcyer dhe qeshur.</p>
+      <p class="bt">Dasma e nuses bëhet <em class="hl">ditën e shtunë</em>, ndërsa ajo e dhëndrit <em class="hl">ditën e diel</em>. Përpara dasmës zhvillohet <em class="hl">ahengu</em>, ku marrin pjesë të gjithë njerëzit, madje edhe ata që nuk janë të ftuar apo nuk njihen mirë me familjen. Ky aheng mund të zgjasë deri në tre ditë.</p>
+
+      <div class="carved-row">
+        <div class="carved" style="background:#3a1a20;"><h3 style="color:#e8a0b0;">E Premte — Shikimi i Nuses</h3><p>Ditën e premte bëhet "shikimi i nuses" në shtëpinë e nënës së saj, ku njerëzit e lagjes dhe të afërmit shkojnë për ta parë dhe, sipas zakonit, i hedhin para si shenjë urimi.</p></div>
+        <div class="carved" style="background:#3a1a20;"><h3 style="color:#e8a0b0;">E Shtunë — Dasma e Nuses</h3><p>Ditën e shtunë zhvillohet dasma e nuses, ku ajo qëndron e shoqëruar në tavolinën e saj, zakonisht nga vëllai ose ndonjë kushëri.</p></div>
+      </div>
+
+      <p class="bt">Të dielën në mëngjes vjen dhëndri së bashku me të afërmit e tij për të marë nusen. Pasi ata mbërrijnë, gratë hyjnë brenda në shtëpi, ndërsa burrat qëndrojnë jashtë në oborr. Nusja del e shoqëruar nga dhoma e saj, zakonisht nga motra ose një kushëri shumë e afërt.</p>
+      <p class="bt">Gjatë kësaj kohe, <em class="hl">krushkat këndojnë këngë për nusen</em>, të cilat kanë në thelb ndarjen nga shtëpia, nëna, babai, vëllezërit dhe motrat. Këto këngë janë me motive prekëse dhe shpesh e bëjnë nusen të qajë.</p>
+      <p class="bt">Më pas, krushkat i japin nuses dhuratat e përgatitura, si para, mbulesa krevati apo bizhuteri, të cilat zakonisht i dorëzohen shoqërueses së saj. Ndërkohë, burrat jashtë ngrenë dolli për çiftin e ri dhe këndojnë këngë të ndryshme.</p>
+      <p class="bt">Nusja nxirret nga dera e shtëpisë nga babai i saj dhe më pas e merr dhëndri. Pas kësaj, në oborr hidhen valle nga krushqit. <em class="hl">Pika kulmore</em> është momenti kur krushqit, së bashku me çiftin, largohen. Për të simbolizuar një jetë të lumtur dhe të begatë, atyre u hidhen oriz, para dhe ndonjëherë karamele, ndërsa në rrugën e tyre derdhet raki, si shenjë që rruga t'u shkojë mbarë dhe të jenë të mbrojtur nga të ligat.</p>
+
+      <div class="wax-q"><p>"Rrugët mbushen me zhurmën e borive të makinave, duke shtuar atmosferën festive."</p></div>
+
+      <p class="bt">Kur nusja mbërrin në shtëpinë e dhëndrit, ajo pritet nga një i afërm, i cili derdh raki në rrugën drejt derës së shtëpisë. Një tjetër traditë është <em class="hl">lyerja e pragut të derës me mjaltë</em> nga nusja, mjaltë që i jepet nga vjehrra. Kjo simbolizon një marrëdhënie të mirë dhe të ëmbël mes nuses dhe vjehrrës.</p>
+
+      <div class="film-wrap">
+        <div class="film-inner">
+          <div class="pf"><img src="https://i.ibb.co/QvLYdwF2/IMG-6786.png" alt="MUZIKA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">DALJA E NUSES NGA SHTËPIA</div></div>
+          <div class="pf"><img src="https://i.ibb.co/fV47JR91/IMG-6787.png" alt="CEREMONIA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">DHËNDRI MERR NUSEN NGA BABAI</div></div>
+          <div class="pf"><img src="https://i.ibb.co/YB8TXWg7/IMG-6788.png" alt="VALLET" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">HEDHJA E ORIZIT</div></div>
+          <div class="pf"><img src="https://i.ibb.co/21z7Kpg7/IMG-6789.png" alt="KËNGA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">VALLET E OBORRIT</div></div>
+          <div class="pf"><img src="https://i.ibb.co/5V6KLT6/IMG-6790.png" alt="DASMA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">GJUAJTJA ME ARMË</div></div>
+        </div>
+      </div>
+      <div class="dtags"><span class="dtag">Dasma</span><span class="dtag">Ahengu</span><span class="dtag">Krushqit</span><span class="dtag">Dolia</span><span class="dtag">Mjalt</span><span class="dtag">Raki</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     MIKPRITJA
+════════════════════════════════════════ -->
+<section id="mikpritja" class="screen det">
+  <button class="back-btn" onclick="navigo('menu-screen')">✕ KTHEHU</button>
+  <div class="sw">
+    <div class="det-hero"><div class="det-hero-bg" style="background:url('https://placehold.co/1600x400/0e0505/c17d3c') center/cover;"></div><div class="det-hero-txt"><span class="det-hero-lbl">ZEMRA DHE SHIJA</span><span class="det-hero-title">Mikpritja & Shija</span></div></div>
+    <div class="det-body">
+      <div class="sec-div"><span class="sec-sym">❧</span></div>
+      <div class="mosaic3">
+        <div class="pf"><img src="https://i.ibb.co/S4Zks3WG/IMG-6155.jpg" alt="SOFRA SULOVARE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">TAVOLINA SULOVARE</div></div>
+        <div class="pf"><img src="https://i.ibb.co/JFS5VbyN/IMG-6617.jpg" alt="RAKIA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">DOLIA — RAKIA</div></div>
+        <div class="pf"><img src="https://i.ibb.co/46YbCMZ/IMG-6027.jpg" alt="DOLIA — RAKIA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">MJALT E RIGON</div></div>
+      </div>
+      <p class="bt dropcap">Dollia e Sulovës është e famshme: aty ku rakia <em class="hl">"pihet edhe me opingë"</em>. Restorantet e zonës ofrojnë shijen e vërtetë të tokës — mishi i pjekur, prodhimet e serrave moderne, rigoni e mjalti i pyjeve me pisha.</p>
+      <div class="carved-row">
+        <div class="carved"><h3>Prodhimet e Tokës</h3><p>Rigoni i malit, mjalti i pishave dhe perimet e freskëta janë krenaria e kësaj toke pjellore mes lumenjve.</p></div>
+        <div class="carved"><h3>Kodi i Mikpritjes</h3><p>Mikpritja nuk është shërbim — është detyrim moral. Miku pritet gjithmonë me derën hapur sipas traditës së "Besës".</p></div>
+      </div>
+      <div class="film-wrap">
+        <div class="film-inner">
+          <div class="pf"><img src="https://i.ibb.co/PZGr7qgZ/IMG-6471.jpg" alt="RESTORANT MOLLAS" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">RESTORANTI MOLLAS</div></div>
+          <div class="pf"><img src="https://i.ibb.co/XZG7GnRK/IMG-2158.jpg" alt="PJATA KRYESORE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">FSHATI FRASHËR</div></div>
+          <div class="pf"><img src="https://i.ibb.co/XZG7GnRK/IMG-2158.jpg" alt="MISH I PJEKUR" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">PJATA KRYESORE</div></div>
+          <div class="pf"><img src="https://i.ibb.co/HpPtHhY1/IMG-6794.jpg" alt="BYREK TRADICIONAL" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">BYREK TRADICIONAL</div></div>
+        </div>
+      </div>
+      <div class="dtags"><span class="dtag">Raki</span><span class="dtag">Mjalt</span><span class="dtag">Rigon</span><span class="dtag">Besa</span><span class="dtag">Mollas</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     ARSIMI
+════════════════════════════════════════ -->
+<section id="arsimi" class="screen det">
+  <button class="back-btn" onclick="navigo('menu-screen')">✕ KTHEHU</button>
+  <div class="sw">
+    <div class="det-hero"><div class="det-hero-bg" style="background:url('https://placehold.co/1600x400/05080e/3c8bc1') center/cover;"></div><div class="det-hero-txt"><span class="det-hero-lbl">DIJA DHE E ARDHMJA</span><span class="det-hero-title">Arsimi në Sulovë</span></div></div>
+    <div class="det-body">
+      <div class="sec-div"><span class="sec-sym">✦</span></div>
+      <p class="bt dropcap">Arsimi në Sulovë ka qenë si një dritë e ndezur mes kodrave, një flakë dijeje që lindi herët dhe nuk u shua kurrë, pavarësisht kohëve të vështira. Në një vend ku jeta lidhej fort me tokën, punën dhe traditën, shkolla u bë shpresa më e madhe për të ardhmen dhe përparimin e brezave.</p>
+      <p class="bt">Shkolla e parë në Sulovë u hap në vitin <em class="hl">1916</em>, në Mollas, me vetëm <em class="hl">24 nxënës</em>. Ishte një fillim i vogël në numër, por i madh në ëndërr dhe vullnet. Aty lindi besimi se arsimi mund të ndryshonte jetën dhe të hapte horizonte të reja. Me kalimin e viteve drita e shkollës u përhap në çdo fshat, ndërsa në <em class="hl">vitin 1971</em> u ngrit edhe shkolla e mesme.</p>
+
+      <div class="photo-stack">
+        <div class="pf"><img src="https://i.ibb.co/CpN6n72W/IMG-6168.png" alt="SHKOLLA 2012" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">SHKOLLA 2012</div></div>
+        <div class="pf"><img src="https://i.ibb.co/390LXwww/IMG-6796.jpg" alt="AKTIVITETE TË MËPARSHME" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">AKTIVITETE TË MËPARSHME</div></div>
+        <div class="pf"><img src="https://i.ibb.co/TDVc47mr/IMG-6579.jpg" alt="DREJTUES TË SHKOLLËS" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">DREJTUES TË SHKOLLËS NDËR VITE</div></div>
+      </div>
+
+      <p class="bt">Një figurë e rëndësishme ishte drejtori i parë i shkollës në <em class="hl">vitin 1952, Bexhet Belegu</em>, i cili kontribuoi në organizimin dhe forcimin e arsimit. Mësuesit e parë nuk ishin vetëm edukatorë — ishin <em class="hl">misionarë të dijes</em>. Ecën nëpër rrugë të vështira, kaluan kodra e shtigje, vetëm që fjala e shkruar të mbërrinte në çdo shtëpi.</p>
+      <p class="bt">Shkolla mban emrin <em class="hl">"Osman Gjini"</em>, emër që ruan brenda vetes një histori të dhimbshme. Ky emër iu vendos për nder të rojës së shkollës, Osman Gjinit, i cili humbi jetën tragjikisht në oborrin e shkollës. Kujtimi i tij vazhdon të jetojë si simbol sakrifice.</p>
+
+      <div class="edu-pq"><span class="big-q">"</span><p>Arsimi në Sulovë nuk ka qenë thjesht proces mësimi, por një urë që ka lidhur të kaluarën me të ardhmen dhe një forcë që vazhdon të mbajë gjallë shpirtin e kësaj treve.</p></div>
+
+      <h2 style="font-family:'Cormorant SC',serif;font-size:0.82rem;letter-spacing:5px;color:var(--rust);margin-bottom:18px;">INSTITUCIONET ARSIMORE</h2>
+      <div class="school-grid">
+        <div class="school-card">
+          <div class="sc-img pf"><img src="https://i.ibb.co/CpN6n72W/IMG-6168.png" alt="SHKOLLA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">SHKOLLA E PARË 1916</div></div>
+          <div class="sc-body"><h3>Shkolla e Parë — Mollas 1916</h3><p>24 nxënës, vullnet i madh. Fillimi i historisë arsimore sulovare.</p></div>
+        </div>
+        <div class="school-card">
+          <div class="sc-img pf"><img src="https://i.ibb.co/q3Kyx8Jx/IMG-6801.png" alt="STAFI AKTUAL" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">STAFI AKTUAL</div></div>
+          <div class="sc-body"><h3>Stafi i Mësuesve</h3><p>Brezat e mësuesve që kanë mbajtur gjallë dritën e dijes në Sulovë.</p></div>
+        </div>
+        <div class="school-card">
+          <div class="sc-img pf"><img src="https://i.ibb.co/WvxdTfwt/IMG-6802.png" alt="SHKOLLA E TANISHME" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">SHKOLLA SOT</div></div>
+          <div class="sc-body"><h3>Shkolla "Osman Gjini"</h3><p>Emri i saj ruan kujtimin e një njeriu që sakrifikoi për komunitetin.</p></div>
+        </div>
+      </div>
+
+      <div class="sub-head">Historia e Arsimit</div>
+      <div class="timeline">
+        <div class="tli"><div class="tli-yr">1916</div><div class="tli-title">Shkolla e Parë — Mollas</div><p class="tli-txt">24 nxënës dhe misionarë të dijes. Fillimi i iluminizmit sulovar.</p></div>
+        <div class="tli"><div class="tli-yr">1952</div><div class="tli-title">Drejtori i Parë — Bexhet Belegu</div><p class="tli-txt">Organizoi dhe forcoi arsimin në krahinë. Figurë e rëndësishme për historinë e shkollës.</p></div>
+        <div class="tli"><div class="tli-yr">1971</div><div class="tli-title">Shkolla e Mesme</div><p class="tli-txt">Hap i madh — brezi i parë i maturantëve sulovarë drejt universiteteve.</p></div>
+        <div class="tli"><div class="tli-yr">SOT</div><div class="tli-title">Shkolla "Osman Gjini"</div><p class="tli-txt">Gjenerata e re studion brenda e jashtë Shqipërisë, me zemrën te vendlindja.</p></div>
+      </div>
+
+      <!-- Filmstrip -->
+      <div class="film-wrap">
+        <div class="film-inner">
+          <div class="pf"><img src="https://i.ibb.co/3DmdqgF/IMG-6799.jpg" alt="GJENERATA E SOTME" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">GJENERATA E SOTME</div></div>
+          <div class="pf"><img src="https://i.ibb.co/qL8MjPpS/IMG-6798.jpg" alt="GJENERATA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">GJENERATA</div></div>
+          <div class="pf"><img src="https://i.ibb.co/qYz671SZ/IMG-6171.jpg" alt="GRUPI KËRCIMTAR" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">GRUPI KËRCIMTAR</div></div>
+          <div class="pf"><img src="https://i.ibb.co/wr2K6HmT/IMG-6795.jpg" alt="AKTIVITETE TË VJETRA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">AKTIVITETE TË VJETRA</div></div>
+          <div class="pf"><img src="https://i.ibb.co/q3w8w90N/IMG-6174.png" alt="AKTIVITETE TË TANISHME" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">AKTIVITETE SOT</div></div>
+        </div>
+      </div>
+
+      <!-- Alumni -->
+      <div class="alumni-grid">
+        <div class="alumni"><div class="alumni-av">B</div><div class="alumni-info"><h4>Bexhet Belegu — Drejtori i Parë 1952</h4><p>Organizoi dhe forcoi arsimin në krahinën e Sulovës.</p></div></div>
+        <div class="alumni"><div class="alumni-av">O</div><div class="alumni-info"><h4>Osman Gjini — Simboli i Sakrificës</h4><p>Roja i shkollës, emri i të cilit vazhdon të jetojë në muret e saj.</p></div></div>
+        <div class="alumni"><div class="alumni-av">M</div><div class="alumni-info"><h4>Misionarët e Dijes</h4><p>Mësuesit e parë që mësonin edhe të rriturit pas punës, nëpër kodra e lagje.</p></div></div>
+        <div class="alumni"><div class="alumni-av">A</div><div class="alumni-info"><h4>Akademikët e Sotëm</h4><p>Mjekë, inxhinierë, mësues, artistë — kontribues me krenari vendlindjen.</p></div></div>
+      </div>
+
+      <div class="dtags"><span class="dtag">1916</span><span class="dtag">Bexhet Belegu</span><span class="dtag">Osman Gjini</span><span class="dtag">1971</span><span class="dtag">Misionarë</span><span class="dtag">Dija</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     BUJQËSIA DHE AGROINDUSTRIA
+════════════════════════════════════════ -->
+<section id="bujqesia" class="screen det">
+  <button class="back-btn" onclick="navigo('menu-screen')">✕ KTHEHU</button>
+  <div class="sw">
+    <div class="det-hero"><div class="det-hero-bg" style="background:url('https://placehold.co/1600x400/0a1405/5a8a3a') center/cover;"></div><div class="det-hero-txt"><span class="det-hero-lbl">TOKA DHE PUNA</span><span class="det-hero-title">🌾 Bujqësia & Agroindustria</span></div></div>
+    <div class="det-body">
+      <div class="sec-div"><span class="sec-sym">🌾</span></div>
+
+      <!-- Sera + fields hero photos -->
+      <div class="pg2c" style="margin:32px -48px;">
+        <div class="pf tilt-l" style="min-height:290px;"><img src="https://i.ibb.co/cKWF64Yd/IMG-5609.png" alt="SERAT E SULOVËS" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">SERAT — ZEMRA E EKONOMISË</div></div>
+        <div class="pf tilt-r" style="min-height:290px;"><img src="https://i.ibb.co/1YsGGLQt/2-EAB935-D-0-E9-D-4669-BA94-7-DE8-C62-D43-C9.jpg" alt="ULLINJT SULOVARË" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">ULLINJT — KODRAT E VJETRA</div></div>
+      </div>
+
+      <p class="bt dropcap">Sulovarët njihen si <em class="hl">seraxhinj</em>, sepse rreth <em class="hl">80% e tyre</em> merren me sera. Kjo tregon qartë se sa punëtorë dhe të përkushtuar janë njerëzit e kësaj zone. Ata zgjohet herët çdo mëngjes dhe kujdesen me përpikmëri për kulturat e tyre, duke punuar pa u lodhur për të siguruar prodhime cilësore.</p>
+      <p class="bt">Serat nuk janë thjesht një burim të ardhurash për ta, por <em class="hl">një mënyrë jetese</em>, një traditë e trashëguar ndër vite që vazhdon të përcillet brez pas brezi. Falë punës së palodhur dhe përkushtimit të tyre, Sulova njihet për prodhimet e freskëta dhe cilësore që furnizojnë tregjet përreth.</p>
+
+      <!-- Feature banner for produce -->
+      <div class="feature-banner">
+        <div class="feat-cell"><span class="feat-icon">🫒</span><span class="feat-name">Ullinjt</span><p class="feat-desc">Kodrat e mbuluara me ullinj shekullor — vaj i artë me shije të pasur dhe traditë të hershme.</p></div>
+        <div class="feat-cell"><span class="feat-icon">🌿</span><span class="feat-name">Rigoni & Bimët Aromatike</span><p class="feat-desc">Rigoni, sherebela e trumza — parfum i malit sulovar, të eksportuar dhe të njohur gjerësisht.</p></div>
+        <div class="feat-cell"><span class="feat-icon">🪵</span><span class="feat-name">Paulownia</span><p class="feat-desc">Druri i çmuar paulownia — investim i ardhmes dhe mundësi e re agroindustriale.</p></div>
+      </div>
+
+      <!-- Olive grove photos -->
+      <div class="sub-head">Ulliri — Argjendi i Tokës</div>
+      <div class="pg4c" style="margin:24px 0;">
+        <div class="pf" style="height:180px;"><img src="https://i.ibb.co/nNYwbyjj/IMG-6965.jpg" alt="VAJI I ULLIRIT" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">VAJI I ULLIRIT</div></div>
+        <div class="pf" style="height:180px;"><img src="https://i.ibb.co/QR56WDj/D1-A69-B09-9-FFD-47-CA-9955-B3859-A867214.jpg" alt="ULLINJT" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">ULLINJTË — KODRAT</div></div>
+        <div class="pf" style="height:180px;"><img src="https://i.ibb.co/1YsGGLQt/2-EAB935-D-0-E9-D-4669-BA94-7-DE8-C62-D43-C9.jpg" alt="ULLIRI" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">VAJI I ULLIRIT</div></div>
+        <div class="pf" style="height:180px;"><img src="https://i.ibb.co/QR56WDj/D1-A69-B09-9-FFD-47-CA-9955-B3859-A867214.jpg" alt="KORRJA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">KORRJA</div></div>
+        <div class="pf" style="height:180px;"><img src="https://i.ibb.co/1YsGGLQt/2-EAB935-D-0-E9-D-4669-BA94-7-DE8-C62-D43-C9.jpg" alt="VAJ ULLIRI" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">PRODHIMI ARTIZANAL</div></div>
+      </div>
+
+      <p class="bt">Sulova është një zonë ku natyra dhe puna e njeriut bashkohen për të krijuar begati. Toka pjellore, klima e favorshme dhe rrjeti i pasur hidrik e bëjnë këtë trevë një nga zonat më të përshtatshme për zhvillimin e bujqësisë. <em class="hl">Kodrat janë të mbuluara me ullinj</em>, ndërsa fushat mbillen me grurë dhe misër, duke vazhduar një traditë të hershme bujqësore.</p>
+
+      <!-- Sera and fruits photos -->
+      <div class="sub-head">Serat & Frutat</div>
+      <div class="mosaic4" style="grid-template-rows:190px 190px;">
+        <div class="pf"><img src="https://i.ibb.co/cKWF64Yd/IMG-5609.png" alt="SERAT MODERNE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">SERAT MODERNE</div></div>
+        <div class="pf"><img src="https://i.ibb.co/yF7bpwVZ/IMG-6804.jpg" alt="DOMATE SULOVARE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">DOMATET</div></div>
+        <div class="pf"><img src="https://i.ibb.co/gMd7pq0v/IMG-6809.png" alt="PEIZAZHI" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">MISRI</div></div>
+        <div class="pf"><img src="https://i.ibb.co/7Nb7TdGk/IMG-6806.jpg" alt="VRESHTARIA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">VRESHTARIA</div></div>
+        <div class="pf"><img src="https://i.ibb.co/1HtK1Bj/IMG-6807.png" alt="RRUSHI" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">GRURI</div></div>
+      </div>
+
+      <p class="bt">Frutat, perimet dhe vreshtaria zënë një vend të rëndësishëm në ekonominë e zonës, ndërsa serat moderne mundësojnë prodhim gjatë gjithë vitit. Po ashtu, kultivimi i bimëve aromatike dhe industriale si <em class="hl">rigoni, sherebela dhe trumza</em>, si dhe druri i çmuar <em class="hl">paulownia</em>, i japin kësaj zone një vlerë të veçantë ekonomike.</p>
+
+      <div class="carved-green-row">
+        <div class="carved-green"><h3>Solidariteti i Komunitetit</h3><p>Bashkëpunimi mes banorëve është një vlerë e rëndësishme. Ata ndihmojnë njëri-tjetrin në punët e përditshme, ndajnë përvojat dhe këshillat, duke krijuar një komunitet të fortë dhe të bashkuar.</p></div>
+        <div class="carved-green"><h3>Potenciali Agroindustrial</h3><p>Këto zhvillime e bëjnë Sulovën jo vetëm një zonë bujqësore, por edhe një vend me potencial të madh për agroindustri dhe tregje më të gjera.</p></div>
+      </div>
+
+      <div class="bleed"><div class="pf" style="background:linear-gradient(135deg,#0a1a06,#041004);"><img src="https://i.ibb.co/gMd7pq0v/IMG-6809.png" alt="PEIZAZHI BUJQËSOR" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">PEIZAZHI BUJQËSOR — SULOVA</div></div></div>
+
+      <!-- VINTAGE CARD bujqesia -->
+      <div class="vintage-card">
+        <div class="vintage-card-stamp"><span>🫒</span><span>ULLIRI</span></div>
+        <div class="vintage-card-inner">
+          <span class="vc-title">Pasuria e Tokës</span>
+          <div class="news-cols">
+            Sulovë — toka pjellore mes lumenjve, e mbuluar me ullinj shekullor dhe parfumosur me rigon mali. Çdo mëngjes sulovari zgjohet me dashuri ndaj tokës dhe punon pa u lodhur. Serat, ullishtet dhe vreshtat janë dëshmia e pasurisë natyrore dhe punës njerëzore.
+          </div>
+        </div>
+      </div>
+
+      <!-- INK STAMP -->
+      <div style="text-align:center;margin:20px 0;">
+        <span class="ink-stamp">PRODHIME CILËSORE SULOVARE</span>
+      </div>
+
+      <div class="dtags"><span class="dtag">Seraxhinj</span><span class="dtag">Ulliri</span><span class="dtag">Rigon</span><span class="dtag">Paulownia</span><span class="dtag">Vreshtaria</span><span class="dtag">Sera</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     GATIMET TRADICIONALE SULOVARE
+════════════════════════════════════════ -->
+<section id="gatimet" class="screen det">
+  <button class="back-btn" onclick="navigo('menu-screen')">✕ KTHEHU</button>
+  <div class="sw">
+    <div class="det-hero"><div class="det-hero-bg" style="background:url('https://placehold.co/1600x400/1a0a05/c17d3c') center/cover;"></div><div class="det-hero-txt"><span class="det-hero-lbl">KUZHINA SULOVARE</span><span class="det-hero-title">Gatimet Tradicionale</span></div></div>
+    <div class="det-body">
+      <div class="sec-div"><span class="sec-sym">🍽</span></div>
+      <p class="bt dropcap">Kuzhina sulovare është një pasuri kulturore që ruhet ende sot nga banorët e zonës. Gatimet tradicionale përgatiten me produkte natyrale, receta të trashëguara brez pas brezi dhe shumë përkushtim. Në sofrën sulovare gjenden ushqime të thjeshta, por me shije autentike dhe vlera të mëdha ushqyese.</p>
+
+      <!-- GATIMET KRYESORE -->
+      <div class="sub-head">Gatimet Kryesore</div>
+
+      <div class="carved-row">
+        <div class="carved"><h3>Lakrori me Spinaq</h3><p>Petë të holla të hapura me dorë, mbushje me spinaq të freskët, qepë dhe erëza. Piqet në saç ose furrë dhe shërbehet në çdo familje, sidomos gjatë festave.</p></div>
+        <div class="carved"><h3>Lakrori me Hithra</h3><p>Lidhet ngushtë me natyrën fshatare. Hithrat e egra si mbushje — njohur për vlerat ushqyese. Ky ushqim është ruajtur brez pas brezi dhe vazhdon të përgatitet edhe sot.</p></div>
+      </div>
+
+      <div class="pg3c" style="margin:28px 0;">
+        <div class="pf" style="height:200px;"><img src="https://i.ibb.co/CpCTxXdT/IMG-6966.jpg" alt="LAKRORI" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">LAKRORI TRADICIONAL</div></div>
+        <div class="pf" style="height:200px;"><img src="https://i.ibb.co/B2m9hWKD/IMG-6967.jpg" alt="FASULJA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">FASULJA TRADICIONALE</div></div>
+        <div class="pf" style="height:200px;"><img src="https://i.ibb.co/LhqxtdzF/IMG-6969.jpg" alt="MESNIKU" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">MESNIKU</div></div>
+      </div>
+
+      <div class="carved-row">
+        <div class="carved"><h3>Lakrori me Mish</h3><p>Mish i grirë, qepë dhe erëza tradicionale, petë të hapura me dorë. Përgatitet kryesisht gjatë festave familjare, dasmave dhe pritjes së miqve.</p></div>
+        <div class="carved"><h3>Fasulja Tradicionale</h3><p>Gatuhet ngadalë në tenxhere balte ose zjarr tradicional. Shoqërohet me bukë shtëpie, qepë dhe turshi — nga sofrat më të dashura sulovare.</p></div>
+      </div>
+
+      <div class="carved-row">
+        <div class="carved"><h3>Jania</h3><p>Fasule, qepë, perime dhe erëza të ndryshme — një ushqim i ngrohtë dhe shumë ushqyes. Shumë i njohur edhe në Sulovë.</p></div>
+        <div class="carved"><h3>Mesniku</h3><p>I përgatitur me kalastre të freskët dhe produkte shtëpie. Shumë i përdorur në familjet fshatare, sepse gjithçka vinte nga toka dhe blegtoria.</p></div>
+      </div>
+
+      <div class="pg2c-eq" style="margin:28px 0;">
+        <div class="pf" style="height:200px;"><img src="https://i.ibb.co/WNY5JLzV/IMG-6970.jpg" alt="TRAHANAJA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">TRAHANAJA</div></div>
+        <div class="pf" style="height:200px;"><img src="https://i.ibb.co/S7cn1CL3/IMG-6971.jpg" alt="BYREKU" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">BYREKU TRADICIONAL</div></div>
+      </div>
+
+      <div class="carved-row">
+        <div class="carved"><h3>Trahanaja</h3><p>Nga ushqimet më të vjetra — miell gruri, kos ose qumësht, thahet për dimrin. Gatuhet si supë e ngrohtë — shumë ushqyese dhe me histori të gjatë.</p></div>
+        <div class="carved"><h3>Byreku Tradicional</h3><p>Me djathë, kungull apo barishte — pjesë e rëndësishme e kuzhinës sulovare. Përgatitet shpesh për mysafirët dhe raste festash familjare.</p></div>
+      </div>
+
+      <!-- TURSHITË & BULMETET -->
+      <div class="sub-head">Turshitë & Bulmetet</div>
+      <div class="pg2c-eq" style="margin:28px 0;">
+        <div class="pf" style="height:190px;"><img src="https://i.ibb.co/F4WR5JBM/IMG-6972.jpg" alt="TURSHITË" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">TURSHITË TRADICIONALE</div></div>
+        <div class="pf" style="height:190px;"><img src="https://i.ibb.co/G4Hzm6BX/IMG-6973.jpg" alt="DJATHI" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">DJATHI & BULMETET</div></div>
+      </div>
+      <p class="bt">Turshitë përgatiten me speca, lakër, kastravecë, domate të gjelbra dhe perime të tjera stine — ruhen për muaj të tërë dhe shoqërojnë çdo vakt tradicional. Bulmetet — djathi, gjiza, qumështi, kosi dhe gjalpi — përgatiten në mënyrë tradicionale nga familjet blegtorale dhe kanë shije natyrale shumë të veçantë.</p>
+
+      <!-- ËMBËLSIRAT -->
+      <div class="sub-head">Ëmbëlsirat Tradicionale</div>
+      <div class="pg4c" style="margin:24px 0;">
+        <div class="pf" style="height:180px;"><img src="https://i.ibb.co/93nr9PxL/IMG-6900.jpg" alt="BALLOKUMJA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">BALLOKUMJA</div></div>
+        <div class="pf" style="height:180px;"><img src="https://i.ibb.co/LXys8P5R/IMG-6974.jpg" alt="REVANIA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">REVANIA</div></div>
+        <div class="pf" style="height:180px;"><img src="https://i.ibb.co/6Rzrb2Vt/IMG-6975.jpg" alt="HALLVA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">HALLVA</div></div>
+        <div class="pf" style="height:180px;"><img src="https://i.ibb.co/9HSqh6YJ/IMG-6976.jpg" alt="PETULLAT ME MJALTË" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">PETULLAT ME MJALTË</div></div>
+      </div>
+
+      <div class="carved-row">
+        <div class="carved"><h3>Ballokumja</h3><p>Nga ëmbëlsirat më të njohura të zonës së Elbasanit — shumë e përdorur edhe në Sulovë. Miell misri, gjalpë, vezë dhe sheqer.</p></div>
+        <div class="carved"><h3>Bakllavaja</h3><p>Përgatitet sidomos gjatë festave familjare dhe Vitit të Ri. Petë të holla, arra dhe sherbet — simbol i gëzimit dhe mikpritjes.</p></div>
+      </div>
+      <div class="carved-row">
+        <div class="carved"><h3>Revania</h3><p>Ëmbëlsirë tradicionale me sherbet, shumë e butë dhe e shijshme. Shërbehet shpesh në raste festash dhe vizitash familjare.</p></div>
+        <div class="carved"><h3>Petullat me Mjaltë</h3><p>Petullat e shtëpisë me mjaltë apo sheqer — traditë e zonës, shpesh në mëngjeset familjare dhe ditë festash.</p></div>
+      </div>
+
+      <!-- PIJET -->
+      <div class="sub-head">Pijet Tradicionale</div>
+      <div class="pg4c" style="margin:24px 0;">
+        <div class="pf" style="height:170px;"><img src="https://i.ibb.co/9HSqh6YJ/IMG-6976.jpg" alt="DHALLA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">DHALLA</div></div>
+        <div class="pf" style="height:170px;"><img src="https://i.ibb.co/N6WXB720/IMG-6978.jpg" alt="KOMPOSTOJA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">KOMPOSTOJA</div></div>
+        <div class="pf" style="height:170px;"><img src="https://i.ibb.co/cX7FwV4s/IMG-6807.png" alt="VERA TRADICIONALE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">VERA TRADICIONALE</div></div>
+        <div class="pf" style="height:170px;"><img src="https://i.ibb.co/JFS5VbyN/IMG-6617.jpg" alt="RAKIA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">RAKIA TRADICIONALE</div></div>
+      </div>
+
+      <div class="carved-row">
+        <div class="carved"><h3>Dhalla & Kompostoja</h3><p>Dhalla — pije freskuese nga kosi i holluar, shumë e shëndetshme, sidomos gjatë verës. Kompostoja — fruta të ziera (kumbulla, pjeshkë, dardha) të ruajtura për dimrin.</p></div>
+        <div class="carved"><h3>Vera & Rakia</h3><p>Vera tradicionale nga rrushi i zonës dhe rakia artizanale e rrushit apo kumbullës — gjatë festave, dasmave dhe pritjes së miqve. Çajrat bimorë si çaji i malit plotësojnë traditën.</p></div>
+      </div>
+
+      <div class="dtags"><span class="dtag">Lakrori</span><span class="dtag">Fasulja</span><span class="dtag">Trahanaja</span><span class="dtag">Byreku</span><span class="dtag">Turshitë</span><span class="dtag">Ballokumja</span><span class="dtag">Bakllavaja</span><span class="dtag">Rakia</span><span class="dtag">Dhalla</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     NATYRA DHE TURIZMI
+════════════════════════════════════════ -->
+<section id="natyra" class="screen det">
+  <button class="back-btn" onclick="navigo('menu-screen')">✕ KTHEHU</button>
+  <div class="sw">
+    <div class="det-hero"><div class="det-hero-bg" style="background:url('https://placehold.co/1600x400/061006/4a9a4a') center/cover;"></div><div class="det-hero-txt"><span class="det-hero-lbl">PEIZAZH & AVENTURË</span><span class="det-hero-title">Natyra & Turizmi</span></div></div>
+    <div class="det-body">
+      <div class="sec-div"><span class="sec-sym">🌿</span></div>
+
+      <!-- Big nature photo grid -->
+      <div class="pg2c" style="margin:30px -48px;">
+        <div class="pf tilt-l" style="min-height:280px;"><img src="https://i.ibb.co/Kj9TrLst/IMG-6810.png" alt="PEIZAZHI" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"></div>
+        <div class="pf tilt-r" style="min-height:280px;"><img src="https://i.ibb.co/gMd7pq0v/IMG-6809.png" alt="PEIZAZH NATYRAL" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"></div>
+      </div>
+
+      <p class="bt dropcap">Natyra e Sulovës është e egër dhe e bukur njëkohësisht, një kombinim i rrallë që tërheq vëmendjen e çdo vizitori. Kodra të buta, fusha të gjera dhe shkurre mesdhetare krijojnë një peizazh të pasur dhe të larmishëm, ndërsa rrjeti ujor i zonës i jep jetë tokës dhe gjelbërimit.</p>
+      <p class="bt">Fauna e saj është e pasur, me kafshë si <em class="hl">dhelpra, lepuri, ujku dhe derri i egër</em>, duke e bërë këtë zonë një vend të përshtatshëm për turizëm natyror dhe aventuror. Bukuritë natyrore dhe qetësia që ofron Sulova e bëjnë atë një destinacion që mund të zhvillohet edhe më shumë në të ardhmen.</p>
+
+      <!-- Nature photos grid -->
+      <div class="pg4c" style="margin:28px 0;">
+        <div class="pf" style="height:170px;"><img src="https://i.ibb.co/Kj9TrLst/IMG-6810.png" alt="PYJET" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"></div>
+        <div class="pf" style="height:170px;"><img src="https://i.ibb.co/mFgr6sJ8/IMG-6811.jpg" alt="URA E SULOVËS" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"></div>
+        <div class="pf" style="height:170px;"><img src="https://i.ibb.co/gMd7pq0v/IMG-6809.png" alt="NATYRA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"></div>
+        <div class="pf" style="height:170px;"><img src="https://i.ibb.co/Kj9TrLst/IMG-6810.png" alt="FLORA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"></div>
+      </div>
+
+      <!-- Tourism / restaurants -->
+      <div class="sec-div"><span class="sec-sym">🍽</span></div>
+      <div class="sub-head">Gastronomia & Agroturizmi</div>
+      <p class="bt">Sulova ofron një përvojë të veçantë kulinarie, duke ndërthurur traditën me mikpritjen karakteristike të zonës. Në këtë krahinë gjenden restorante dhe ambiente agroturizmi ku vizitorët kanë mundësi të provojnë shije të ndryshme të gatimeve tradicionale vendase, të përgatitura me produkte të freskëta dhe lokale.</p>
+
+      <!-- Restaurant photos -->
+      <div class="mosaic4" style="grid-template-rows:190px 190px;">
+        <div class="pf"><img src="https://i.ibb.co/mFgr6sJ8/IMG-6811.jpg" alt="URA E SULOVËS" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">AGROTURIZMI "URA E SULOVËS"</div></div>
+        <div class="pf"><img src="https://i.ibb.co/hF05t5GS/IMG-6813.jpg" alt="KOMPLEKS PESHKU" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">KOMPLEKS PESHKU — LUMAS</div></div>
+        <div class="pf"><img src="https://i.ibb.co/hx7C50Dp/IMG-6470.jpg" alt="RESTORANTI KOXHAJ" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">RESTORANTI "KOXHAJ"</div></div>
+        <div class="pf"><img src="https://i.ibb.co/933Lvm42/IMG-6814.jpg" alt="RESTORANTI MUCA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">RESTORANTI "MUCA"</div></div>
+        <div class="pf"><img src="https://i.ibb.co/1fP6PR80/IMG-6815.jpg" alt="RESTORANTI SHAIPI" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">RESTORANTI "SHAIPI"</div></div>
+      </div>
+
+      <div class="carved-green-row">
+        <div class="carved-green"><h3>Agroturizmi "Ura e Sulovës"</h3><p>Në zonën e Urës së Gostimës — pjata tradicionale si mishi në saç, byreku i bërë në shtëpi dhe produkte bulmeti të përgatitura nga banorët vendas.</p></div>
+        <div class="carved-green"><h3>Kompleks Peshku — Lumas</h3><p>I specializuar në gatime me peshk të freskët — peshk i pjekur, në tavë apo i skuqur, me garnitura tradicionale dhe sallata të freskëta.</p></div>
+      </div>
+
+      <p class="bt">Në Mollas gjenden disa restorante të njohura, si <em class="hl">restoranti "Koxhaj"</em>, ku tipike është kuzhina tradicionale e zonës, sidomos gatimet me mish, të përgatitura sipas recetave të vjetra. Po ashtu gjenden <em class="hl">"Muca"</em> dhe <em class="hl">"Shaipi"</em>, të cilat ofrojnë një shumëllojshmëri gatimesh tradicionale dhe moderne, duke ruajtur gjithmonë shijen autentike të Sulovës.</p>
+      <p class="bt">Kuzhina e Sulovës karakterizohet nga përdorimi i mishit të freskët, gatimet në saç, byrekët e ndryshëm, si dhe ëmbëlsirat tradicionale të përgatitura në mënyrë artizanale.</p>
+
+      <div class="film-wrap">
+        <div class="film-inner">
+          <div class="pf"><img src="https://i.ibb.co/9HdcfS4R/IMG-6819.png" alt="MISH NË SAÇ" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">MISHI NË SAÇ</div></div>
+          <div class="pf"><img src="https://i.ibb.co/HpPtHhY1/IMG-6794.jpg" alt="BYREK SHTËPIE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">BYREK SHTËPIE</div></div>
+          <div class="pf"><img src="https://i.ibb.co/hF05t5GS/IMG-6813.jpg" alt="PESHK I FRESKËT" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">PESHK I FRESKËT</div></div>
+          <div class="pf"><img src="https://i.ibb.co/BKKMbdQp/IMG-6822.jpg" alt="BAKLLAVAJA TRADICIONALE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">ËMBËLSIRAT ARTIZANALE</div></div>
+          <div class="pf"><img src="https://i.ibb.co/V0zy7Z1K/IMG-6816.jpg" alt="SOFRA" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">PRODUKTE BULMETI</div></div>
+        </div>
+      </div>
+
+      <!-- Extra nature photos bleed -->
+      <div class="bleed" style="margin-top:36px;"><div class="pf" style="background:linear-gradient(135deg,#061006,#030a03);"><img src="https://i.ibb.co/Kj9TrLst/IMG-6810.png" alt="PANORAMË NATYRORE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">PANORAMË NATYRORE</div></div></div>
+
+      <div class="dtags"><span class="dtag">Agroturizëm</span><span class="dtag">Gostima</span><span class="dtag">Peshku</span><span class="dtag">Koxhaj</span><span class="dtag">Fauna</span><span class="dtag">Pyjet</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     SHPIRTI I SULOVËS
+════════════════════════════════════════ -->
+<section id="shpirti" class="screen det">
+  <button class="back-btn" onclick="navigo('menu-screen')">✕ KTHEHU</button>
+  <div class="sw">
+    <div class="det-hero"><div class="det-hero-bg" style="background:url('https://placehold.co/1600x400/0e0505/c17d3c') center/cover;"></div><div class="det-hero-txt"><span class="det-hero-lbl">ZEMRA E KËSAJ TREVE</span><span class="det-hero-title">❤️ Shpirti i Sulovës</span></div></div>
+    <div class="det-body">
+      <div class="sec-div"><span class="sec-sym">❤</span></div>
+
+      <div class="pg2c-eq" style="margin:30px 0;">
+        <div class="pf tilt-l" style="height:260px;"><img src="https://i.ibb.co/MDLx7nwG/IMG-6824.png" alt="ZEMRA E HAPUR" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">MIKPRITJA — ZEMRA E HAPUR</div></div>
+        <div class="pf tilt-r" style="height:260px;"><img src="https://i.ibb.co/mCCJPPQr/IMG-6825.png" alt="DOLLIA — LIDHJA E ZEMRËS" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">DOLIA — LIDHJA E ZEMRAVE</div></div>
+      </div>
+
+      <p class="bt dropcap">Ajo që e bën Sulovën të veçantë nuk është vetëm historia apo natyra, por <em class="hl">shpirti i njerëzve të saj</em>. Mikpritja këtu është e sinqertë dhe e pakushtëzuar, një traditë që nuk ka ndryshuar me kalimin e kohës.</p>
+      <p class="bt">Rakia është simbol i respektit dhe i nderimit për mikun, ndërsa <em class="hl">dollia</em> është momenti ku shprehet dashamirësia dhe lidhja mes njerëzve. Në Sulovë, miku trajtohet si familje dhe çdo derë është e hapur për këdo që vjen me zemër të mirë.</p>
+
+      <div class="wax-q"><p>"Kjo është forca e vërtetë e kësaj treve — një forcë që nuk vjen nga pasuria materiale, por nga zemra dhe tradita që jeton në çdo shtëpi."</p></div>
+
+      <div class="pg4c" style="margin:30px 0;">
+        <div class="pf" style="height:180px;"><img src="https://i.ibb.co/NgQf3nbR/IMG-6826.png" alt="SHTËPITË SULOVARE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">SHTËPITË</div></div>
+        <div class="pf" style="height:180px;"><img src="https://i.ibb.co/S4Zks3WG/IMG-6155.jpg" alt="SOFRA FAMILJARE" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">FAMILJA SULOVARE</div></div>
+        <div class="pf" style="height:180px;"><img src="https://i.ibb.co/3DmdqgF/IMG-6799.jpg" alt="BREZAT E RINJ" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">BREZAT E RINJ</div></div>
+        <div class="pf" style="height:180px;"><img src="https://i.ibb.co/TDVc47mr/IMG-6579.jpg" alt="URTËSIA E MOSHËS" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">URTËSIA E MOSHËS</div></div>
+      </div>
+
+      <div class="carved-row">
+        <div class="carved"><h3>Mikpritja e Pakushtëzuar</h3><p>Çdo derë është e hapur. Çdo vizitor është mik. Kjo nuk është traditë e fjalës, por e veprimit — e trashëguar brez pas brezi pa asnjë ndryshim.</p></div>
+        <div class="carved"><h3>Dolia — Lidhja e Zemrave</h3><p>Dollia nuk është thjesht gëzim — është moment ku fjalët marrin vlerë dhe zemrat bashkohen. Rakia ngrihet si shenjë respekti, jo si zakon i thjeshtë.</p></div>
+      </div>
+
+      <div class="bleed"><div class="pf"><img src="https://i.ibb.co/Kj9TrLst/IMG-6810.png" alt="SULOVA — SHTËPIA E ZEMRËS" style="width:100%;height:100%;object-fit:cover;display:block;filter:sepia(0.1) brightness(0.92);transition:transform 0.7s,filter 0.7s;" onmouseover="this.style.transform='scale(1.07)';this.style.filter='sepia(0) brightness(1)'" onmouseout="this.style.transform='scale(1)';this.style.filter='sepia(0.1) brightness(0.92)'"><div class="pf-cap">SULOVA — SHTËPIA E ZEMRËS</div></div></div>
+
+      <!-- VINTAGE FINAL CARD -->
+      <div class="vintage-card" style="margin-top:32px;">
+        <div class="vintage-card-stamp"><span>❤</span><span>BESA</span></div>
+        <div class="vintage-card-inner">
+          <span class="vc-title">Memoria e Tokës</span>
+          <p class="vc-text">"Kjo është forca e vërtetë e kësaj treve — një forcë që nuk vjen nga pasuria materiale, por nga zemra dhe tradita që jeton në çdo shtëpi sulovare."</p>
+        </div>
+      </div>
+
+      <!-- GUILLMET QUOTE final -->
+      <div class="guillmet-q">
+        <p>Rakia ngrihet, dollia shpallet, dera hapet — kjo është Sulova. Jo thjesht një krahinë, por një mënyrë jetese.</p>
+        <cite>— Shpirti i Sulovës</cite>
+      </div>
+
+      <div style="text-align:center;margin:20px 0;">
+        <span class="ink-stamp">SULOVA — MEMORIA E TOKËS</span>
+      </div>
+
+      <div class="dtags"><span class="dtag">Zemra</span><span class="dtag">Mikpritja</span><span class="dtag">Dolia</span><span class="dtag">Rakia</span><span class="dtag">Besa</span><span class="dtag">Tradita</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+function navigo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  setTimeout(()=>{
+    const t=document.getElementById(id);
+    if(t){t.classList.add('active');const sw=t.querySelector('.sw');if(sw)sw.scrollTop=0;}
+  },80);
+}
+(function(){
+  const c=document.getElementById('particles');
+  const ctx=c.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  function mkPt(){return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.2+0.2,vx:(Math.random()-0.5)*0.15,vy:-Math.random()*0.18-0.03,a:Math.random()*0.42+0.08,life:0,maxLife:Math.random()*420+180};}
+  for(let i=0;i<60;i++)pts.push(mkPt());
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach((p,i)=>{
+      p.life++;p.x+=p.vx;p.y+=p.vy;
+      const f=p.life<60?p.life/60:p.life>p.maxLife-60?(p.maxLife-p.life)/60:1;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(193,125,60,${p.a*f})`;ctx.fill();
+      if(p.life>=p.maxLife||p.y<-10)pts[i]=mkPt();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+</body>
+</html>

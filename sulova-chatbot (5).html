@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chatbot Sulova</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Cormorant+SC:wght@400;600&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+<style>
+:root{--ember:#c17d3c;--bone:#f0e8d5;--parchment:#e8dbbf;--ink:#1c1409;--ash:#3a2e1e;--rust:#6b2d0e;--copper:#8b5e3c;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--ink);font-family:'Cormorant Garamond',Georgia,serif;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E");pointer-events:none;z-index:999;}
+body::after{content:'';position:fixed;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(193,125,60,0.09) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:0;}
+canvas#particles{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0.35;}
+.app{position:relative;z-index:2;width:100%;max-width:720px;background:var(--parchment);box-shadow:0 0 0 1px rgba(193,125,60,0.2),0 0 0 6px rgba(193,125,60,0.04),0 32px 80px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.4);display:flex;flex-direction:column;height:min(800px,93vh);}
+.app::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(28,20,9,0.022) 28px,rgba(28,20,9,0.022) 29px);pointer-events:none;z-index:0;}
+.corner{position:absolute;width:36px;height:36px;border-color:var(--ember);border-style:solid;opacity:0.45;pointer-events:none;z-index:2;}
+.corner-tl{top:10px;left:10px;border-width:1.5px 0 0 1.5px;}.corner-tr{top:10px;right:10px;border-width:1.5px 1.5px 0 0;}.corner-bl{bottom:10px;left:10px;border-width:0 0 1.5px 1.5px;}.corner-br{bottom:10px;right:10px;border-width:0 1.5px 1.5px 0;}
+header{position:relative;z-index:1;padding:18px 32px 14px;border-bottom:1px solid rgba(107,45,14,0.2);text-align:center;background:linear-gradient(to bottom,rgba(107,45,14,0.06),transparent);}
+.hg{font-family:'UnifrakturMaguntia',cursive;font-size:2.4rem;color:rgba(107,45,14,0.15);line-height:1;display:block;margin-bottom:-4px;user-select:none;}
+header h1{font-family:'UnifrakturMaguntia',cursive;font-size:clamp(1.3rem,4vw,1.9rem);color:var(--ash);line-height:1;letter-spacing:0.04em;}
+.hs{font-family:'Cormorant SC',serif;font-size:0.52rem;letter-spacing:7px;color:var(--rust);display:block;margin-top:5px;}
+.tabs{position:relative;z-index:1;display:flex;border-bottom:1px solid rgba(107,45,14,0.2);}
+.tab{flex:1;padding:10px;font-family:'Cormorant SC',serif;font-size:0.54rem;letter-spacing:4px;color:rgba(58,46,30,0.46);background:none;border:none;cursor:pointer;transition:all 0.3s;position:relative;}
+.tab::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--ember);transform:scaleX(0);transition:transform 0.3s;}
+.tab.active{color:var(--rust);}.tab.active::after{transform:scaleX(1);}.tab:hover{color:var(--rust);}
+#chatbox{flex:1;overflow-y:auto;padding:22px 26px;display:flex;flex-direction:column;gap:14px;position:relative;z-index:1;scrollbar-width:thin;scrollbar-color:var(--ember) transparent;}
+#chatbox::-webkit-scrollbar{width:3px;}#chatbox::-webkit-scrollbar-thumb{background:var(--ember);}
+.welcome{text-align:center;padding:18px 12px;opacity:0;animation:fadeUp 0.8s ease 0.3s forwards;}
+.ws{font-family:'UnifrakturMaguntia',cursive;font-size:2.5rem;color:rgba(107,45,14,0.17);display:block;margin-bottom:8px;}
+.welcome p{font-style:italic;font-size:1rem;color:rgba(58,46,30,0.6);line-height:1.7;max-width:440px;margin:0 auto;}
+.wtags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px;}
+.wtag{font-family:'Cormorant SC',serif;font-size:0.48rem;letter-spacing:3px;color:var(--rust);border:1px solid rgba(107,45,14,0.25);padding:4px 10px;cursor:pointer;transition:background 0.2s,color 0.2s;}
+.wtag:hover{background:var(--rust);color:var(--bone);}
+.msg{display:flex;gap:9px;animation:fadeUp 0.35s ease forwards;max-width:92%;}
+.msg.user{align-self:flex-end;flex-direction:row-reverse;}.msg.bot{align-self:flex-start;}
+.av{width:28px;height:28px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'UnifrakturMaguntia',cursive;font-size:0.95rem;margin-top:2px;}
+.msg.user .av{background:var(--rust);color:var(--parchment);}.msg.bot .av{background:var(--ash);color:var(--ember);}
+.bubble{padding:11px 15px;font-size:1rem;line-height:1.72;position:relative;max-width:100%;}
+.msg.user .bubble{background:var(--ash);color:var(--bone);clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);}
+.msg.bot  .bubble{background:rgba(255,255,255,0.55);color:var(--ink);border:1px solid rgba(107,45,14,0.14);clip-path:polygon(10px 0,100% 0,100% 100%,0 100%,0 10px);}
+.msg.bot.dict .bubble{background:rgba(107,45,14,0.06);border:1px solid rgba(107,45,14,0.24);}
+.db{display:inline-block;font-family:'Cormorant SC',serif;font-size:0.44rem;letter-spacing:3px;background:var(--rust);color:var(--bone);padding:2px 8px;margin-bottom:9px;}
+.dw{font-family:'UnifrakturMaguntia',cursive;font-size:1.38rem;color:var(--rust);display:block;line-height:1.1;margin-bottom:5px;}
+.dm{font-size:1.04rem;color:var(--ash);font-style:italic;}
+.typing-dots{display:flex;gap:5px;align-items:center;padding:12px 16px;}
+.typing-dots span{width:6px;height:6px;background:var(--copper);border-radius:50%;animation:bounce 1.2s ease infinite;}
+.typing-dots span:nth-child(2){animation-delay:0.2s;}.typing-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:0.4;}40%{transform:translateY(-6px);opacity:1;}}
+#browse-panel{display:none;flex:1;overflow-y:auto;padding:16px 24px;position:relative;z-index:1;flex-direction:column;scrollbar-width:thin;scrollbar-color:var(--ember) transparent;}
+#browse-panel::-webkit-scrollbar{width:3px;}#browse-panel::-webkit-scrollbar-thumb{background:var(--ember);}
+.bsearch{position:relative;margin-bottom:12px;}
+.bsearch input{width:100%;background:rgba(255,255,255,0.45);border:1px solid rgba(107,45,14,0.22);color:var(--ink);font-family:'Cormorant Garamond',serif;font-size:1rem;padding:9px 14px 9px 33px;outline:none;transition:border 0.3s;}
+.bsearch input:focus{border-color:var(--ember);}
+.bsearch::before{content:'◈';position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--copper);font-size:0.9rem;pointer-events:none;}
+.bcnt{font-family:'Cormorant SC',serif;font-size:0.47rem;letter-spacing:4px;color:var(--copper);margin-bottom:11px;display:block;}
+.dentries{display:flex;flex-direction:column;}
+.entry{padding:10px 6px;border-bottom:1px solid rgba(107,45,14,0.1);display:flex;align-items:baseline;gap:10px;cursor:pointer;transition:padding-left 0.2s,background 0.2s;}
+.entry:hover{background:rgba(107,45,14,0.04);padding-left:12px;}.entry:last-child{border-bottom:none;}
+.ew{font-family:'UnifrakturMaguntia',cursive;font-size:1.1rem;color:var(--rust);min-width:150px;flex-shrink:0;}
+.es{color:var(--ember);font-size:0.8rem;flex-shrink:0;}
+.em{font-style:italic;color:var(--ash);font-size:0.92rem;line-height:1.5;}
+.input-area{position:relative;z-index:1;padding:13px 20px 15px;border-top:1px solid rgba(107,45,14,0.2);background:linear-gradient(to top,rgba(107,45,14,0.04),transparent);display:flex;gap:10px;align-items:center;}
+#input{flex:1;background:rgba(255,255,255,0.45);border:1px solid rgba(107,45,14,0.22);color:var(--ink);font-family:'Cormorant Garamond',serif;font-size:1.02rem;padding:11px 15px;outline:none;transition:border 0.3s,box-shadow 0.3s;border-radius:0;}
+#input::placeholder{color:rgba(58,46,30,0.38);font-style:italic;}
+#input:focus{border-color:var(--ember);box-shadow:0 0 0 2px rgba(193,125,60,0.1);}
+#sbtn{width:44px;height:44px;background:var(--ash);border:1px solid rgba(193,125,60,0.3);color:var(--ember);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.3s,transform 0.15s;flex-shrink:0;position:relative;overflow:hidden;}
+#sbtn::before{content:'';position:absolute;inset:0;background:var(--ember);transform:scaleX(0);transform-origin:left;transition:transform 0.3s ease;}
+#sbtn:hover::before{transform:scaleX(1);}#sbtn:hover{color:var(--ink);}#sbtn:active{transform:scale(0.94);}
+#sbtn svg{position:relative;z-index:1;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<div class="app">
+  <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div><div class="corner corner-br"></div>
+  <header>
+    <span class="hg">S</span>
+    <h1>Chatbot Sulova</h1>
+    <span class="hs">FJALORI DIALEKTAL · MEMORIA E TOKËS</span>
+  </header>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('chat')" id="tab-chat">💬 BISEDË & FJALOR</button>
+    <button class="tab" onclick="switchTab('browse')" id="tab-browse">📖 SHFLETO FJALORIN</button>
+    <button class="tab" onclick="resetChat()" title="Kthehu te pyetjet">↩ KTHEHU</button>
+  </div>
+  <div id="chatbox">
+    <div class="welcome" id="welmsg">
+      <span class="ws">✦</span>
+      <p>Mirë se vini! Pyetni çfarë dëshironi për <strong>Sulovën</strong> — historinë, kulturën, dasmat, bujqësinë, natyrën, arsimin, fenë — ose shkruani një fjalë në <strong>dialektin sulovar</strong>.</p>
+      <div class="wtags">
+        <span class="wtag" onclick="aq('çfarë është sulova')">Çfarë është Sulova?</span>
+        <span class="wtag" onclick="aq('historia')">Historia</span>
+        <span class="wtag" onclick="aq('kultura dhe traditat')">Kultura</span>
+        <span class="wtag" onclick="aq('dasma')">Dasmat</span>
+        <span class="wtag" onclick="aq('ushqimet tradicionale')">Ushqimet</span>
+        <span class="wtag" onclick="aq('natyra')">Natyra</span>
+        <span class="wtag" onclick="aq('bujqesia')">Bujqësia</span>
+        <span class="wtag" onclick="aq('arsimi')">Arsimi</span>
+        <span class="wtag" onclick="aq('turizmi')">Turizmi</span>
+        <span class="wtag" onclick="aq('emigracioni')">Emigracioni</span>
+        <span class="wtag" onclick="aq('sporti')">Sporti</span>
+        <span class="wtag" onclick="aq('gatimet tradicionale sulovare')">Gatimet</span>
+        <span class="wtag" onclick="aq('ëmbëlsirat tradicionale')">Ëmbëlsirat</span>
+        <span class="wtag" onclick="aq('pijet tradicionale')">Pijet</span>
+        <span class="wtag" onclick="aq('ça po bon')">ça po bon</span>
+        <span class="wtag" onclick="aq('rrofsh')">rrofsh</span>
+        <span class="wtag" onclick="aq('nona')">nona</span>
+        <span class="wtag" onclick="aq('what is sulova')">English?</span>
+      </div>
+    </div>
+  </div>
+  <div id="browse-panel">
+    <div class="bsearch"><input id="binput" placeholder="Kërko fjalë ose kuptim..." oninput="filtro()"/></div>
+    <span class="bcnt" id="bcnt"></span>
+    <div class="dentries" id="dentries"></div>
+  </div>
+  <div class="input-area" id="iarea">
+    <input id="input" placeholder="Shkruaj pyetje ose fjalë dialektale..." autocomplete="off"/>
+    <button id="sbtn" onclick="dergo()">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M14 8L2 2l3 6-3 6 12-6z" fill="currentColor"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════
+   DIALECT DICTIONARY
+══════════════════════════════════════════════════ */
+const FJALOR = {
+  "ça po bon":"çfarë po bën","s'ka gjo":"s'ka gjë","harrova fare":"e harrova plotësisht",
+  "mos e ço mo kot anej":"mos e çoni kot atje","po bohet mir":"po përmirësohet",
+  "mos e ço dom":"mos e shpërdoro, mos e hidh, mos e ço dëm",
+  "bo prove dhe shife":"bëj provë dhe shikoje","skalon kollaj":"nuk kalon lehtë",
+  "mos rri kot":"mos rri pa bërë asgjë","po ha buk":"po ha ushqim",
+  "mos hajde von":"mos hajde vonë","do vish a":"a do të vish",
+  "ho moj":"përdoret për të nxitur dikë të flasë ose për habi",
+  "qenefe":"tualet","merume":"lodhje / rraskapitje","ngrodhesir":"ngrohtësi",
+  "koma":"këmba","mos ha mo":"mos ha më","e mora mhall":"e kuptova",
+  "anej":"andej","knej":"këtej","nona":"nëna / gjyshja","mulesa":"mbulesa",
+  "penxhere":"dritare","masanej":"më pas","qasu":"afrohu","gdhir":"zbardhi dita",
+  "u ngrys":"po erret","ngjoj":"dëgjoj","opinga":"këpucë tradicionale",
+  "tafta":"shapka / kapele tradicionale","krori":"krehër","mjell":"mbjell",
+  "sehir":"shikim me kureshtje","xhade":"rrugë","po ça thua":"çfarë po thua",
+  "mos e vra menjen":"mos u shqetëso","rrofsh":"faleminderit",
+  "mos u nxeh":"mos u zemëro","sabah":"mëngjes","paska lezet":"qenka bukur",
+  "merak":"shqetësim","ime":"tani","ra ntok":"ra përdhe",
+  "jalla u boft ashu":"u bëftë ashtu si dëshironi"
+};
+
+/* ══════════════════════════════════════════════════
+   KNOWLEDGE BASE — 120 Q&A + deep topics
+   Çdo entry ka:
+     keys[]:  fjalë kyçe pas normalizimit
+     ask[]:   fraza të plota (match direkt)
+     r:       përgjigja
+══════════════════════════════════════════════════ */
+const KB = [
+
+  /* ── 1. ÇFARË ËSHTË SULOVA ── */
+  {
+    keys:["sulova","cfare","ç'është","çfarë","krahinë","krahina","prezanto","info","informacion","tregome","fol","njohuri","kush","ku eshte","ku ndodhet","ku eshte sulova"],
+    ask:["çfarë është sulova","c eshte sulova","cfare eshte sulova","ku ndodhet sulova","tregomë për sulovën","rreth sulovës"],
+    r:`Sulova është një krahinë tradicionale shqiptare në qarkun e Elbasanit, e njohur për historinë, kulturën dhe traditat e saj të ruajtura ndër vite. Ka një identitet të fortë kulturor dhe përfaqëson një pjesë të rëndësishme të trashëgimisë shqiptare rurale.
+
+Sulova kufizohet me Gramshin, Belshin, Peqinin dhe Elbasanin. Përbëhet nga 15 fshatra me reliev kodrinor dhe dy njësi administrative — Mollasi dhe Klosi — me mbi 12,500 banorë.`
+  },
+
+  /* ── 2. HISTORIA ── */
+  {
+    keys:["histori","historia","e kaluara","lashtësi","lashtesia","origjina","zanafilla","ilir","roman","romak","bizant","osman","sundim","periudh","shekull","shek","banoret e pare","banorët e parë","kush ishin"],
+    ask:["historia e sulovës","historia e suloves","origjina e sulovës","banorët e parë","sa e vjetër është historia"],
+    r:`Historia e Sulovës është shumë e hershme — besohet se zona ka qenë e banuar që në kohën e Ilirëve, populli i lashtë i Ballkanit. Banorët e parë jetonin me bujqësi, blegtori dhe gjueti.
+
+Emri "Sulovë" mendohet të vijë nga latinishtja: "SUL" = mbi, "OVE" = përtej. Ndikimet ilire, romake dhe bizantine janë të pranishme ende sot në toponime dhe kulturë. Mollasi lidhet me fisin e lashtë të Molosëve. Lagjja Shtodër lidhet me Shën Teodorin.
+
+Pas viteve 1990, shumë banorë emigruan në Itali, Greqi dhe Angli për jetë më të mirë ekonomike — por traditat mbetën.`
+  },
+
+  /* ── 3. JETA E VJETËR ── */
+  {
+    keys:["si jetonin","familje","patriarkal","bageti","bagëti","dikur","jeta vjetër","jete","baza"],
+    ask:["si jetonin njerëzit dikur","si ishte jeta dikur","familja tradicionale"],
+    r:`Njerëzit jetonin në familje të mëdha patriarkale. Punonin tokën, mbanin bagëti dhe ruanin zakonet tradicionale shqiptare. Familja konsiderohej baza kryesore e jetës dhe respekti për prindërit e të moshuarit ishte shumë i madh.
+
+Oborret e mëdha shërbenin si hapësira ku familja jetonte dhe punonte çdo ditë. Shtëpitë tradicionale ndërtoheshin me gur, dru dhe materiale natyrore.`
+  },
+
+  /* ── 4. KULTURA & TRADITAT ── */
+  {
+    keys:["kultur","kultura","tradita","traditat","zakone","zakonet","trashëgimia","trashegimia","popullore","vlera","identitet","karakteri","sjellshëm","punëtorë","lidhur"],
+    ask:["kultura dhe traditat","çfarë kulture ka sulova","si janë banorët","traditat sulovare"],
+    r:`Sulova ka kulturë tradicionale shqiptare me ndikime rurale, folklorike dhe familjare. Banorët njihen si mikpritës, të sjellshëm, punëtorë dhe shumë të lidhur me familjen.
+
+Kultura jeton në çdo këngë popullore, veshje tradicionale, valle dhe rit. Dialekti karakteristik me zanoren "o" në vend të "ë" e bën sulovarishten unike. Buka simbolizon mikpritjen, jetën dhe respektin ndaj mysafirit. Fjala e dhënë lidhet ngushtë me nderin dhe besimin.`
+  },
+
+  /* ── 5. MIKPRITJA ── */
+  {
+    keys:["mikpritj","mikpritje","mikpritja","mysafir","mik","zemërgjerësi","derë","hapur","raki","doli","dolia","besa"],
+    ask:["çfarë është mikpritja sulovare","mikpritja","rakia sulovare","dolia"],
+    r:`Mikpritja sulovare është zakoni për të pritur mysafirin me respekt, ushqim dhe zemërgjerësi — traditë e sinqertë dhe e pakushtëzuar që nuk ka ndryshuar kurrë.
+
+Rakia nuk është thjesht pije — është simbol i thellë i respektit dhe nderimit për mikun. Dollia është momenti ceremonial ku zemrat bashkohen dhe fjalët marrin vlerë. Besa — fjala e dhënë — konsiderohet e shenjtë dhe nuk thyhet. Çdo derë është e hapur për këdo që vjen me zemër të mirë.`
+  },
+
+  /* ── 6. DASMAT ── */
+  {
+    keys:["dasma","dasmë","dasmat","martesë","nuse","nusja","dhëndri","dhëndër","aheng","krushk","ritu","ceremoni","tradicional","para","oriz","mjalt","vjehrra","shtunë","diel","premte","festë","fest","muzikë dasme"],
+    ask:["si bëheshin dasmat","dasmat tradicionale","dasma sulovare","çfarë tradicione ka dasma"],
+    r:`Dasmat tradicionale sulovare zgjasnin disa ditë dhe shoqëroheshin me valle, muzikë popullore dhe shumë vizitorë — gjithë fisi, fqinjët dhe miqtë!
+
+📅 E premte — "Shikimi i nuses" ku njerëzit e lagjes i hedhin para si shenjë urimi.
+📅 E shtunë — Dasma e nuses, e shoqëruar nga vëllai ose kushëri.
+📅 E diel — Dhëndri vjen me të afërmit. Krushkat këndojnë këngë prekëse për ndarjen nga shtëpia.
+
+Kur nusja mbërrin, vjehrra i jep mjaltë për të lyer pragun — simbol i marrëdhënies së ëmbël. Atyre u hidhen oriz, para dhe raki si shenjë mbrojtjeje. Nusja konsiderohej simbol i vazhdimësisë së familjes.`
+  },
+
+  /* ── 7. USHQIMET ── */
+  {
+    keys:["ushqim","ushqimet","gatim","gatimet","byrek","lakror","kulaç","kos","djathë","gjalpë","qumësht","bulmeti","mjaltë","raki","dhalë","çaj","çaj mali","tradicional gatim","pjata","receta","han","ha"],
+    ask:["ushqimet tradicionale","çfarë ushqimesh ka sulova","gatimet tradicionale","çfarë gatimet","çfarë pinin"],
+    r:`Kuzhina sulovare është e pasur dhe autentike:
+
+🥧 Byreku — me djathë, mish ose perime, i bërë në shtëpi.
+🥙 Lakrori — gatim tradicional me petë dhe mbushje të ndryshme.
+🍖 Tava me mish — e pjekur ngadalë, shija kryesore e Sulovës.
+🍞 Kulaçi — bukë tradicionale ceremoniale.
+🫙 Djathë, kos, gjalpë, qumësht — produkte bulmeti shtëpie.
+🍯 Mjaltë natyral — zona është e shkëlqyer për bletari.
+
+Pinin: dhallë, çaj mali dhe raki tradicionale.`
+  },
+
+  /* ── 8. NATYRA ── */
+  {
+    keys:["natur","natyra","natyrë","peizazh","kodra","pyll","pyje","lum","bimë","kafsh","dhelpr","lepuri","ujk","shpend","gjelbër","qetësi","mjedis","ekologji"],
+    ask:["si është natyra","natyra e sulovës","çfarë kafshësh ka","çfarë bimësh rriten"],
+    r:`Natyra e Sulovës është e gjelbëruar, e qetë dhe me shumë peizazhe panoramike. Zona ka pyje dhe kodra të mbuluara me bimësi të pasur.
+
+Kafshë të egra: dhelpra, lepujt dhe shumë lloje shpendësh. Bimë: ullinj, pemë frutore, bimë medicinale si çaji i malit dhe kultura bujqësore. Natyra ndihmon jetën ekonomike, turizmin dhe ruajtjen e mjedisit — dhe ndikon pozitivisht në shëndetin fizik e mendor.`
+  },
+
+  /* ── 9. BUJQËSIA & EKONOMIA ── */
+  {
+    keys:["bujqesi","bujqësi","bujqësia","sera","seraxhinj","ulliri","ullinj","grurë","misër","perime","dele","dhi","lopë","pula","bagëti","ekonomi","tokë","fermer","prodhim","kultivohet","merren","punëtorë","rrit","rriten"],
+    ask:["bujqësia sulovare","me çfarë merren","çfarë kultivohet","çfarë bagëtish"],
+    r:`Banorët merren kryesisht me bujqësi, blegtori dhe punë sezonale. Sulovarët njihen si seraxhinj — rreth 80% merren me sera!
+
+🌾 Kultivohet: grurë, misër, ullinj, perime të ndryshme.
+🐑 Bagëti: dele, dhi, lopë, pula.
+🫒 Ulliri — kodrat mbulohen me ullinj shekullor.
+🌿 Rigoni, sherebela, trumza — bimë aromatike të eksportuara.
+🪵 Paulownia — druri i çmuar i ardhmes.
+
+Toka konsiderohet burim jetese dhe krenarie. Shumë familje përdorin ende metoda tradicionale. Solidariteti mes banorëve — ndihmojnë njëri-tjetrin — është vlerë themelore.`
+  },
+
+  /* ── 10. JETA SHOQËRORE ── */
+  {
+    keys:["jeta shoqerore","jeta shoqërore","fshat","fshatar","fqinj","komunitet","ndihmojnë","punë","ndertim","ndërtim","të moshuar","urtësi","bashkëpunim","solidaritet","grup"],
+    ask:["si është jeta në fshat","si ndihmojnë fqinjët","si respektohen të moshuarit"],
+    r:`Jeta në fshat është më e qetë dhe më e lidhur me natyrën dhe komunitetin. Fqinjët ndihmojnë njëri-tjetrin në punët e tokës, ndërtim dhe raste familjare — kjo frymë solidariteti është shumë e fortë.
+
+Të moshuarit konsiderohen burim urtësie dhe respektohen shumë. Puna konsiderohet virtyt dhe mënyrë për të ndërtuar jetën. Gruaja ka rol të rëndësishëm në familje, edukim dhe ruajtjen e traditave.`
+  },
+
+  /* ── 11. ARSIMI ── */
+  {
+    keys:["arsim","arsimi","shkoll","shkolla","mësues","mësuese","nxënës","dije","ditur","univers","1916","1971","kontribut","edukator","alfabetiz","libër","libra","studim","studiojnë","jashtë","qytet"],
+    ask:["arsimi në sulovë","shkolla e parë","çfarë di për arsimin","a ka shkolla","sa i rëndësishëm"],
+    r:`Po, ka shkolla 9-vjeçare dhe institucione arsimore lokale. Arsimi shihet si mënyrë për përparim dhe zhvillim — vlerë e madhe për komunitetin.
+
+Shkolla e parë u hap në 1916 në Mollas me 24 nxënës. Shkolla e mesme u hap në 1971. Mësuesit e parë ishin misionarë të vërtetë — mësonin edhe të rriturit pas ditës së punës. Fëmijët mësojnë dije shkollore dhe tradita kulturore. Shumë të rinj vazhdojnë studimet në qytete të tjera — dhe nga Sulova kanë dalë inxhinierë, mjekë, mësues, ekonomistë.`
+  },
+
+  /* ── 12. FEJA & BESIMI ── */
+  {
+    keys:["fe","feja","besim","besimi","mysliman","ortodoks","krishter","fest fetare","festë fetare","harmoni","bashkëjetojnë","moral","zakon fetar","tolerancë"],
+    ask:["çfarë besimesh ka","feja në sulovë","si bashkëjetojnë","a ruhen zakonet fetare"],
+    r:`Në Sulovë ka myslimanë dhe ortodoksë që jetojnë në harmoni me respekt dhe tolerancë. Festat fetare respektohen nga të gjitha komunitetet.
+
+Feja ndihmon në ruajtjen e moralit dhe traditave. Shumë familje ruajnë zakonet tradicionale fetare brez pas brezi. Kjo bashkëjetesë harmonike është një nga karakteristikat krenare të komunitetit sulovar.`
+  },
+
+  /* ── 13. TURIZMI ── */
+  {
+    keys:["turizm","turizmi","turist","turistik","vizit","vizitor","eksploro","fotograf","rural","autentik","qetësi","destinacion","pse","shkoj","mund te bej","çfarë mund"],
+    ask:["pse duhet vizituar sulova","çfarë mund të bëjnë turistët","çfarë bën turizmin të veçantë","turizmi rural"],
+    r:`Sulova duhet vizituar për natyrën, qetësinë, kulturën dhe mikpritjen tradicionale!
+
+🏔 Çfarë mund të bëni: eksploroni natyrën, provoni ushqimet lokale, njihuni me traditat.
+📸 Çfarë fotografoni: peizazhe të bukura, shtëpi tradicionale, jetën rurale.
+🏡 Agroturizmi "Ura e Sulovës" (Gostima) — mish në saç, byrek shtëpie.
+🐟 Kompleks Peshku (Lumas) — peshk i freskët.
+🍽 Restorantet Koxhaj, Muca, Shaipi (Mollas) — kuzhinë tradicionale.
+
+Lidhja me natyrën dhe kultura autentike shqiptare e bëjnë turizmin rural të veçantë.`
+  },
+
+  /* ── 14. SPORTI ── */
+  {
+    keys:["sport","sporti","futboll","volejboll","aktivitet fizik","lojë","lojëra","ndeshje","gara","argëtohen","të rinjtë","fizik","shëndet aktiv"],
+    ask:["çfarë sportesh ka sulova","çfarë sportesh preferohen","si argëtohen të rinjtë","a organizohen aktivitete sportive"],
+    r:`Sportet më të preferuara janë futbolli, volejbolli dhe aktivitetet tradicionale në natyrë. Të rinjtë organizojnë shpesh ndeshje në fusha lokale — sporti shihet si mënyrë për argëtim dhe bashkim shoqëror.
+
+Shumë të rinj merren me sport, ecje në natyrë dhe punë fizike. Sporti ndihmon shëndetin dhe krijon frymë bashkëpunimi. Në festa lokale dhe aktivitete shkollore organizohen ndeshje dhe gara. Të rinjtë argëtohen edhe me muzikë, rrjete sociale dhe aktivitete me shoqërinë.`
+  },
+
+  /* ── 15. TEKNOLOGJIA ── */
+  {
+    keys:["teknologji","teknologjia","internet","rrjet social","rrjete sociale","ai","kompjuter","dixhital","modern","smartphone","facebook","tik tok","media"],
+    ask:["a përdoret teknologjia","si ndikon interneti","a përdorin rrjete sociale","çfarë përfitimesh sjell teknologjia"],
+    r:`Po, teknologjia përdoret çdo ditë për komunikim, mësim dhe informim. Interneti ndihmon në edukim, komunikim dhe njohjen me botën moderne.
+
+Rrjetet sociale përdoren shumë nga të rinjtë dhe familjet. Teknologjia lehtëson komunikimin dhe zhvillimin e ideve të reja. Faqet web, chatbot-et dhe videot mund ta bëjnë Sulovën më të njohur për turistët — pikërisht si ky chatbot! 🤖`
+  },
+
+  /* ── 16. EMIGRACIONI ── */
+  {
+    keys:["emigracion","emigracioni","emigrant","emigrantë","emigruan","itali","greqi","angli","europë","largim","kthehen","diaspora","jashtë vendit"],
+    ask:["pse emigruan banorët","ku emigruan","a kthehen emigrantët","si ndikon emigracioni"],
+    r:`Pas viteve 1990, shumë banorë emigruan kryesisht në Itali, Greqi, Angli dhe vende të tjera europiane — për arsye ekonomike dhe mundësi më të mira jetese.
+
+Emigracioni sjell ndihmë ekonomike, por edhe largim të njerëzve nga zona. Shumë emigrantë kthehen gjatë verës ose festave familjare. Një vlerë e bukur: shumica e emigrantëve i ruajnë traditat shqiptare edhe jashtë vendit — Sulova jeton në zemrat e tyre kudo që shkojnë.`
+  },
+
+  /* ── 17. LEGJENDAT & TREGIMET ── */
+  {
+    keys:["legjend","legjenda","tregim","histori popullore","tregojnë","të moshuar","gjysherit","mbrëmje familjare","trashëguar","trimëri","mësimet","70 nuse","nuset"],
+    ask:["çfarë janë legjendat","pse janë të rëndësishme legjendat","legjenda e 70 nuseve","a tregohen ende"],
+    r:`Legjendat janë tregime të vjetra popullore që transmetohen brez pas brezi — shumë e rëndësishme sepse ruajnë historinë dhe imagjinatën popullore.
+
+Zakonisht tregohen nga të moshuarit dhe gjyshërit në mbrëmje familjare. Tregimet popullore përmbajnë trimëri, dashuri për vendin dhe mësime morale. Ende sot tregohen në familje dhe aktivitete kulturore.
+
+🌟 Legjenda e 70 Nuseve: 70 nuse zbritën të njëjtën ditë — çdonjëra solli valle, këngë dhe tradita nga katër anët. Kjo legjendë jeton në çdo dasmë sulovare.`
+  },
+
+  /* ── 18. MUZIKA & FOLKLORI ── */
+  {
+    keys:["muzik","muzika","folklor","folklorik","këng","këngë","valle","vallja","zeqine","ariza","musa","çala","daulle","çifteli","fyell","instrumente","këndoheshin","dëgjohet","shprehin"],
+    ask:["çfarë muzike dëgjohet","çfarë rëndësie ka folklori","si këndoheshin","çfarë instrumentesh","çfarë shprehin këngët"],
+    r:`Muzika popullore shqiptare është shpirti i Sulovës. Dëgjohet muzikë tradicionale dhe moderne.
+
+🎵 Instrumente: daulle, çifteli, fyell dhe të tjera tradicionale.
+🎤 Zeqine Ariza dhe grupi i Musa Çalës mbajnë gjallë traditën.
+💃 Vallet popullore kërcehen në festa, dasma dhe aktivitete.
+
+Folklori ruan identitetin kulturor të zonës. Këngët këndoheshin me zë tradicional në grup dhe shprehim dashuri, trimëri, jetën dhe traditat. Kur: në dasma, festa dhe aktivitete familjare.`
+  },
+
+  /* ── 19. ARKITEKTURA ── */
+  {
+    keys:["shtëpi","shtëpitë","arkitektur","arkitektura","ndërtim","gur","dru","oborr","tradicionale shtëpi","moderne","banim"],
+    ask:["si ishin shtëpitë tradicionale","çfarë karakteristikash kishin","pse ishin oborret të rëndësishme","si ndryshojnë shtëpitë"],
+    r:`Shtëpitë tradicionale ndërtoheshin me gur, dru dhe materiale natyrore — me karakter dhe histori. Karakteristike ishin oborret e mëdha dhe hapësirat për bagëtinë, sepse familjet jetonin dhe punonin aty çdo ditë.
+
+Sot shtëpitë moderne janë më të mëdha dhe të ndërtuara me materiale bashkëkohore. Disa familje ende i ruajnë shtëpitë tradicionale — dëshmi e trashëgimisë arkitekturore.`
+  },
+
+  /* ── 20. SHËNDETI ── */
+  {
+    keys:["shëndet","shëndeti","sëmundje","kurë","mjek","bimë medicinale","çaj","ushqim shëndetshëm","natyral","bio","produkte","kujdeseshim","kujdesej"],
+    ask:["si kujdeseshin për shëndetin","çfarë ushqimesh janë të shëndetshme","a përdornin bimë medicinale"],
+    r:`Njerëzit kujdeseshin për shëndetin me ushqime natyrale dhe jetë aktive — mënyrë e shëndetshme jetese.
+
+Ushqimet e konsideruara të shëndetshme: produktet bio, qumështi, perimet dhe mjalti. Bimët medicinale përdoreshin shumë — çaji i malit dhe bimë të tjera lokale janë ilaçe natyrale. Natyra e pastër ndikon pozitivisht në shëndetin fizik dhe mendor. Dita e një familjeje rurale kalon me punë në tokë, kujdes për familjen dhe aktivitete shtëpiake.`
+  },
+
+  /* ── 21. VLERAT SHOQËRORE ── */
+  {
+    keys:["vlera","vlerat","respekt","nder","ndershmëri","moral","karakter","bashkim","mikpritje","familja","mbështetje","emocionale","ekonomike","besim","tradita ruhet","si ruhet"],
+    ask:["çfarë vlera ka sulova","çfarë është respekti","pse është e rëndësishme familja","si ruhet tradita"],
+    r:`Vlerat kryesore të komunitetit sulovar:
+
+❤ Respekti — ndaj prindërve, të moshuarve dhe mysafirëve.
+🤝 Ndershmëria — lidhet me besimin dhe karakterin.
+🏠 Familja — mbështetja kryesore emocionale dhe ekonomike.
+🚪 Mikpritja — të presësh mysafirin me zemër dhe respekt.
+💪 Puna — virtyt dhe mënyrë për të ndërtuar jetën.
+
+Tradita ruhet me edukimin e brezave të rinj dhe mbajtjen gjallë të zakoneve — nga gjyshi tek nipi, filli nuk këputet.`
+  },
+
+  /* ── 22. KALAJA E QAFËS ── */
+  {
+    keys:["kalaja","kala","fortesa","qafës","qafa","justinian","kulla","mure","gërmim","arkeologji","monedh","624","10000","pesë"],
+    ask:["kalaja e qafës","çfarë është kalaja","tregomë për kalanë"],
+    r:`Kalaja e Qafës ndodhet mbi një shkëmb 624 metra lartë. Mbi 10,000 m² me pesë kulla. I përket shekullit VI — Justiniani I (527–565), konfirmuar nga monedhat e gjetura.
+
+Muret 1.5–2 metra të trasha rrethojnë 13 shtëpi banimi. Kontrollonte lëvizjet ushtarake dhe mbrojt banorët. Nga aty shihen Tomorri, Gramshi, Korça, Elbasani dhe Kuçova. U zotërua nga familja Muzakaj derisa u shkatërrua nga osmanët.`
+  },
+
+  /* ── 23. ARKEOLOGJIA ── */
+  {
+    keys:["arkeologji","arkeologjia","gorica","çobanit","bazilika","klosit","rrënoja","gjetje","zbuluar","lashtësi","811","bizantin"],
+    ask:["arkeologjia e sulovës","çfarë është gorica e çobanit","bazilika e klosit"],
+    r:`Sulova është e pasur me trashëgimi arkeologjike:
+
+⛰ Gorica e Çobanit — pika më e lartë (811m), me varreza të hershme krishterë dhe rrënoja kishash.
+⛪ Bazilika e Klosit — kishë bizantine e shekujve VII–XIII (Prof. Aleksandër Meksi). Mure 1 metër të larta mbijetojnë edhe sot.
+🏰 Kalaja e Qafës — fortesë e shekullit VI, Justiniani I.
+
+Ndikimet ilire, romake dhe bizantine janë të pranishme kudo.`
+  },
+
+  /* ── 24. FSHАТRAT ── */
+  {
+    keys:["fshat","fshatra","fshatrat","15","mollasi","klosi","selitë","selita","linas","linasi","frashër","lumas","gostima","shtodër","qafa","gorica","njësi","administrative","komunitet","lagje"],
+    ask:["fshatrat e sulovës","cilat fshatra ka sulova","sa fshatra ka","tregomë fshatrat"],
+    r:`Sulova ka 15 fshatra në dy njësi administrative:
+
+🔵 Njësia e Mollasit: Mollasi (qendra — restorantet Koxhaj, Muca, Shaipi), Frashëri, Lumasi (Kompleks Peshku), Selita (sera), Gostima (Agroturizmi "Ura e Sulovës").
+
+🟢 Njësia e Klosit: Klosi (Bazilika bizantine), Linasi (folklor), Shtodri (Shën Teodori), Qafa (pranë Kalasë 624m), Gorica e Çobanit (pika 811m).
+
+Gjithsej mbi 12,500 banorë të lidhur me tokën dhe njëri-tjetrin.`
+  },
+
+  /* ── 25. LUFTA & HISTORIA E FUNDIT ── */
+  {
+    keys:["luftë","lufta","luftëra","liri","liria","nacional","çlirimtar","partizan","marr pjesë","patriot"],
+    ask:["a ka marrë pjesë sulova në luftëra","luftërat"],
+    r:`Po — shumë banorë të Sulovës kanë marrë pjesë me trimëri në luftërat për lirinë e Shqipërisë dhe në Luftën Nacionalçlirimtare. Krenaria dhe dëshira për liri janë pjesë e karakterit sulovar.`
+  },
+
+  /* ── 26. PYETJE NGA NXËNËS ── */
+  {
+    keys:["trashëgimi","trashëgimia","identitet","folklor çfarë","pse ruhet","mësojmë","kultura ruhet","historia ruhet","brezat","rinj","fëmijë","nxënës"],
+    ask:["çfarë është trashëgimia kulturore","pse duhet ruajtur kultura","çfarë mësojmë nga traditat","çfarë është folklori"],
+    r:`Trashëgimia kulturore janë traditat, zakonet dhe historia që trashëgohen nga brezat — ato përfaqësonin identitetin dhe historinë e popullit.
+
+Kultura duhet ruajtur sepse pa histori s'ka identitet. Folklori përfshin këngë, valle dhe tregime popullore. Nga traditat mësojmë respektin, bashkimin dhe historinë e vendit. Secili brez ka detyrimin ta transmetojë te i ardhshmi.`
+  },
+
+  /* ── 27. PYETJE NË ANGLISHT ── */
+  {
+    keys:["what is","where is","sulova english","can tourists","what can","why visit","traditional food","known for","located","popular","hospitality","peaceful"],
+    ask:["what is sulova known for","where is sulova located","what can tourists visit","what traditional foods are popular","why should people visit sulova"],
+    r:`🇬🇧 Sulova is a traditional Albanian region known for its hospitality, beautiful nature, folklore and authentic rural culture.
+
+📍 Location: Central Albania, near Elbasan — bordered by Gramsh, Belsh, Peqin and Elbasan.
+
+🏛 Known for: Ancient history (Illyrians, Byzantine fortress), traditional weddings, dialect, folk music, agriculture.
+
+🍽 Traditional foods: byrek, lakror (savory pies), traditional dairy, natural honey, fresh meat dishes.
+
+🌿 Why visit: Peaceful atmosphere, authentic Albanian culture, stunning nature, warm hospitality. Every door is open to visitors!`
+  },
+
+  /* ── 28. AI & CHATBOT ── */
+  {
+    keys:["inteligjencë artificiale","ai","chatbot","program","automatike","i dobishëm","shpejt","teknologji e re","shkolla ai","promovim"],
+    ask:["çfarë është inteligjenca artificiale","si mund të ndihmojë ai sulovën","çfarë është chatbot-i","pse është i dobishëm"],
+    r:`Inteligjenca artificiale (AI) është teknologji që ndihmon kompjuterët të mësojnë dhe të përgjigjen si njerëzit. Ky chatbot është pikërisht një shembull!
+
+AI mund të ndihmojë Sulovën duke promovuar turizmin dhe kulturën lokale. Chatbot-i jep informacion të shpejtë dhe ndihmon vizitorët 24 orë në ditë. Po, AI mund të përdoret edhe në shkolla për mësim dhe projekte edukative. Teknologjia dhe tradita mund të shkojnë dorë-dorës!`
+  },
+
+
+  /* ── 31. GATIMET KRYESORE ── */
+  {
+    keys:["gatim","gatimet","kuzhina","kuzhinë","lakror","lakrori","hithra","spinaq","mish lakror","byrek","byreku","fasule","fasulja","jania","mesniku","mesnik","trahanaja","trahanaj","turshi","turshitë","sofrë","sofra","tradicional","recetë","receta","ushqim tradicional","gatim tradicional","kuzhin sulovar"],
+    ask:["gatimet tradicionale","çfarë gatimesh ka sulova","kuzhina sulovare","lakrori sulovar","çfarë gatuhet","gatimet tradicionale sulovare"],
+    r:`Kuzhina sulovare është pasuri kulturore e ruajtur brez pas brezi me produkte natyrale dhe receta tradicionale:
+
+🥙 Lakrori me spinaq — petë të holla të hapura me dorë, spinaq i freskët, qepë dhe erëza. Piqet në saç ose furrë.
+🌿 Lakrori me hithra — hithrat e egra si mbushje, të njohura për vlerat ushqyese. Lidhet ngushtë me natyrën fshatare.
+🥩 Lakrori me mish — mish i grirë, qepë dhe erëza. Përgatitet kryesisht gjatë festave, dasmave dhe pritjes së miqve.
+🫘 Fasulja tradicionale — gatuhet ngadalë në tenxhere balte ose zjarr, me bukë shtëpie, qepë dhe turshi.
+🍲 Jania — fasule, qepë, perime dhe erëza — ushqim i ngrohtë dhe shumë ushqyes.
+🥛 Mesniku — kalastre i freskët me produkte shtëpie — nga familjet fshatare.
+🌾 Trahanaja — miell gruri me kos, thahet për dimrin dhe gatuhet si supë e ngrohtë.`
+  },
+
+  /* ── 32. ËMBËLSIRAT ── */
+  {
+    keys:["ëmbëlsir","ëmbëlsirat","ballokum","ballokumja","baklava","bakllavaja","revani","revania","hallva","petulla","mjalt","ëmbël","kek","biskuit","sheqer","arra","sherbet"],
+    ask:["ëmbëlsirat tradicionale","çfarë ëmbëlsira ka sulova","ballokumja","bakllavaja sulovare","petullat me mjaltë"],
+    r:`Ëmbëlsirat tradicionale sulovare janë thesar i kuzhinës:
+
+🍯 Ballokumja — nga ëmbëlsirat më të njohura të zonës së Elbasanit. Miell misri, gjalpë, vezë dhe sheqer. Shumë e dashur edhe në Sulova.
+🥮 Bakllavaja — petë të holla, arra dhe sherbet. Përgatitet gjatë festave familjare dhe Vitit të Ri — simbol i gëzimit.
+🍮 Revania — ëmbëlsirë me sherbet, shumë e butë. Shërbehet shpesh në vizita familjare dhe festa.
+🥣 Hallva — miell, gjalpë dhe sheqer — nga ëmbëlsirat më të përdorura në familjet sulovare.
+🫓 Petullat me mjaltë — petulla shtëpie me mjaltë apo sheqer, traditë e mëngjeseve familjare dhe ditëve të festës.`
+  },
+
+  /* ── 33. PIJET TRADICIONALE ── */
+  {
+    keys:["pije","pijet","dhalë","dhalla","komposto","kompostoja","verë","vera tradicionale","raki","rakia","çaj","çajra","bimorë","freskues","alkool","lëng"],
+    ask:["pijet tradicionale","çfarë pinin","dhalla sulovare","vera tradicionale","rakia sulovare","çajrat bimorë"],
+    r:`Pijet tradicionale sulovare:
+
+🥛 Dhalla — pije freskuese nga kosi i holluar, shumë e shëndetshme, sidomos gjatë verës. Nga pijet më të dashura.
+🍑 Kompostoja — fruta të ziera (kumbulla, pjeshkë, dardha) të ruajtura për dimrin — traditë familjare.
+🍷 Vera tradicionale — nga rrushi i zonës, përgatitet nga disa familje. Gjatë festave dhe pritjes së mysafirëve.
+🥃 Rakia — artizanale e rrushit apo kumbullës. Simbol i mikpritjes, ngrihet si dolli në çdo festë e dasmë.
+🌿 Çajrat bimorë — çaji i malit dhe bimë medicinale të mbledhura në natyrë. Aromë dhe vlera shëndetësore.`
+  },
+
+  /* ── 34. BULMETET ── */
+  {
+    keys:["bulmet","bulmeti","djathë","djath","kos","gjalpë","qumësht","gjizë","gjiza","produkte shtëpie","blegtori","lopë","dele","gji","blegtoral"],
+    ask:["bulmetet e sulovës","djathi sulovar","çfarë bulmeti ka","produktet e bulmetit"],
+    r:`Sulova njihet për produktet e bulmetit të përgatitura në mënyrë tradicionale:
+
+🧀 Djathi — i bërë në shtëpi nga familjet blegtorale, me shije natyrale të veçantë.
+🥛 Kosi dhe qumështi — të freskët, nga delet dhe lopët e zonës.
+🧈 Gjalpi shtëpie — i përgatitur tradicional, i pasur dhe aromatik.
+🫙 Gjiza — produkt i lehtë dhe ushqyes, i dashur në sofrën sulovare.
+
+Këto produkte kanë shije natyrale shumë të veçantë dhe shoqërojnë gatimet kryesore të kuzhinës sulovare.`
+  },
+
+  /* ── 35. TURSHITË ── */
+  {
+    keys:["turshi","turshitë","spec","kastravec","lakër turshi","domate të gjelbra","perime të turshira","konserv","dimër","ruaj","konservim"],
+    ask:["turshitë tradicionale","çfarë turshi bëjnë","si përgatiten turshitë"],
+    r:`Turshitë janë shumë të përdorura në familjet sulovare dhe shoqërojnë pothuajse çdo vakt tradicional.
+
+Përgatiten me: speca, lakër, kastravecë, domate të gjelbra dhe perime të tjera stine. Ruhen për muaj të tërë gjatë dimrit. Secila familje ka recetën e saj të veçantë, të trashëguar brez pas brezi. Turshitë janë krenaria e qilaris sulovare!`
+  },
+
+  /* ── 29. FALËNDERIM / ÇFARË TJETËR ── */
+  {
+    keys:["faleminderit","falemnderit","mirënjohje","rrofsh","shumë mirë","gëzofsh","mir u boft","çfarë tjetër","ndihmoje","ndihmë"],
+    ask:["faleminderit","rrofsh"],
+    r:`Rrofsh! — siç thuhet bukur në dialektin sulovar. 😊 Jam i gëzuar që mund të ndihmoj. Pyetni çdo gjë tjetër për Sulovën — historinë, traditat, dialektin, kulturën ose çdo temë tjetër! ✦`
+  },
+
+  /* ── 30. KUSH JE TI ── */
+  {
+    keys:["kush je","chatbot","bot","asistent","emri yt","ky program","si quhem","aplikacion"],
+    ask:["kush je ti","çfarë je ti"],
+    r:`Jam Sullova — chatboti kulturor dhe informues i dedikuar për krahinën historike të Sulovës! 🏛
+
+Di gjithçka për: historinë, arkeologjinë, dasmat, bujqësinë, kulturën, gatimet tradicionale, ëmbëlsirat, pijet, dialektin, arsimin, fenë, sportin, teknologjinë, emigracionin dhe shumë më tepër. Mund të pyesni edhe në anglisht! ✦`
+  },
+];
+
+/* ══════════════════════════════════════════════════
+   NORMALIZER — heq aksentet, minuskole, pastrim
+══════════════════════════════════════════════════ */
+function norm(s) {
+  return s.toLowerCase()
+    .replace(/ë/g,'e').replace(/ç/g,'c').replace(/ä/g,'a')
+    .replace(/â/g,'a').replace(/î/g,'i').replace(/ô/g,'o')
+    .replace(/[?!.,;:'"«»„"''\-_]/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+
+/* ══════════════════════════════════════════════════
+   LEVENSHTEIN — distanca e gabimeve drejtshkrimore
+══════════════════════════════════════════════════ */
+function lev(a, b) {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  if (Math.abs(a.length - b.length) > 4) return 99;
+  const dp = Array.from({length: a.length+1}, (_,i) =>
+    Array.from({length: b.length+1}, (_,j) => i===0?j:j===0?i:0)
+  );
+  for (let i=1;i<=a.length;i++)
+    for (let j=1;j<=b.length;j++)
+      dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] :
+        1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[a.length][b.length];
+}
+
+/* fuzzy: a përputhet b me tolerancë gabimesh */
+function fuzzy(a, b) {
+  if (a === b) return true;
+  if (a.includes(b) || b.includes(a)) return true;
+  // Distanca Levenshtein bazuar në gjatësi
+  const maxDist = b.length <= 4 ? 1 : b.length <= 7 ? 2 : 3;
+  if (lev(a, b) <= maxDist) return true;
+  // Prefix match: 80% e fjalës përputhet
+  if (b.length >= 4 && a.startsWith(b.slice(0, Math.floor(b.length*0.8)))) return true;
+  return false;
+}
+
+/* ngram overlap — për fraza të gjata */
+function ngramScore(query, text) {
+  const qw = query.split(' ').filter(w => w.length > 2);
+  const tw = text.split(' ').filter(w => w.length > 2);
+  if (!qw.length || !tw.length) return 0;
+  let matches = 0;
+  qw.forEach(qword => {
+    if (tw.some(tword => fuzzy(qword, tword))) matches++;
+  });
+  return matches / Math.max(qw.length, 1);
+}
+
+/* ══════════════════════════════════════════════════
+   SINONIME & ZGJERIME
+══════════════════════════════════════════════════ */
+const SYN = {
+  // Pyetje
+  'si':'cfare','cfare':'si','cfare eshte':'tregome','cfare jane':'tregome',
+  'fol':'tregome','trego':'tregome','tregomë':'tregome','shpjego':'cfare',
+  'me thuaj':'tregome','flisni':'tregome','flisni per':'tregome',
+  'di':'cfare','dua te di':'cfare','ke info':'cfare','ke ndonje info':'cfare',
+  'ku':'vendndodhja','çfarë':'cfare','pse':'arsye','kur':'koha',
+  'a ka':'ekziston','a eshte':'ekziston','a kane':'ekziston',
+  'me thuaj per':'tregome','me jep info':'tregome','sqaro':'cfare',
+  // Tema
+  'histori':'historia','historine':'historia','historise':'historia',
+  'fshatra':'fshat','fshatrat':'fshat','fshatrave':'fshat',
+  'njerez':'banore','banore':'njerez','popull':'banore','qytetar':'banore',
+  'argeto':'sport','luaj':'sport','lojra':'sport',
+  'han':'ushqim','ha':'ushqim','ha ushqim':'ushqim','gatin':'gatim',
+  'ushqimet':'ushqim','ushqimeve':'ushqim',
+  'kisha':'bazilike','kishe':'bazilike','kishan':'bazilike',
+  'fort':'kala','fortifikacion':'kala','kastell':'kala',
+  'vallëz':'valle','vallëzim':'valle','kercej':'valle','kerceni':'valle',
+  'muz':'muzike','muzike':'muzik','keng':'kenge','kenget':'kenge',
+  'bull':'bulmeti','qumesht':'bulmeti','djath':'djathi',
+  'gatim':'gatim','gatimi':'gatim','gatime':'gatim','kuzhin':'gatim',
+  'embelsi':'embelsira','candy':'embelsira','sheqeros':'embelsira',
+  'pij':'pije','pije':'pijet','drink':'pije',
+  'turshi':'turshite','konservim':'turshite',
+  'nat':'natyra','mal':'natyra','kodra':'natyra','pyll':'natyra',
+  'turiz':'turizmi','vizit':'turizmi','ekskursion':'turizmi',
+  'rest':'restorant','restorant':'restorante','restorantet':'restorante',
+  'arsim':'arsimi','shkoll':'shkolla','mesim':'arsimi','edukir':'arsimi',
+  'fe':'feja','fes':'feja','mysliman':'feja','ortodoks':'feja',
+  'emigr':'emigracioni','shtepi huaj':'emigracioni','jashte':'emigracioni',
+  'sport':'sporti','futboll':'sporti','volejboll':'sporti',
+  'teknologji':'teknologjia','internet':'teknologjia','cel':'teknologjia',
+  'legjend':'legjendat','treg':'legjendat','histori popull':'legjendat',
+  'dasmë':'dasma','dasma':'dasma','martese':'dasma','nuse':'dasma',
+  'mik':'mikpritja','mikprit':'mikpritja','mysafir':'mikpritja',
+  'bujq':'bujqesia','sera':'bujqesia','ullir':'bujqesia','fermer':'bujqesia',
+  'veshj':'veshjet','kostum':'veshjet','rrobe':'veshjet',
+  'arkeologji':'arkeologjia','gërmim':'arkeologjia','antik':'arkeologjia',
+  'shpirt':'shpirti','zemer':'shpirti','njerez':'shpirti',
+};
+
+/* Zgjerim variantesh: shto forma gramatikore */
+function expandWord(w) {
+  const forms = new Set([w]);
+  // Raste të shpeshta shqip
+  if (w.endsWith('es')) forms.add(w.slice(0,-2));
+  if (w.endsWith('en')) forms.add(w.slice(0,-2));
+  if (w.endsWith('in')) forms.add(w.slice(0,-2));
+  if (w.endsWith('it')) forms.add(w.slice(0,-2));
+  if (w.endsWith('at')) forms.add(w.slice(0,-2));
+  if (w.endsWith('et')) forms.add(w.slice(0,-2));
+  if (w.endsWith('ve')) forms.add(w.slice(0,-2));
+  if (w.endsWith('te')) forms.add(w.slice(0,-2));
+  if (w.endsWith('se')) forms.add(w.slice(0,-2));
+  if (w.endsWith('ne')) forms.add(w.slice(0,-2));
+  if (w.endsWith('re')) forms.add(w.slice(0,-2));
+  if (w.endsWith('me')) forms.add(w.slice(0,-2));
+  if (w.length > 4 && w.endsWith('e')) forms.add(w.slice(0,-1));
+  if (w.length > 4 && w.endsWith('a')) forms.add(w.slice(0,-1));
+  if (SYN[w]) forms.add(SYN[w]);
+  return [...forms];
+}
+
+/* ══════════════════════════════════════════════════
+   SMART MATCHER — 7 shtresa
+══════════════════════════════════════════════════ */
+function match(raw) {
+  const q  = norm(raw);
+  const qW = q.split(' ').filter(w => w.length > 1);
+  // Zgjero çdo fjalë me variante gramatikore + sinonime
+  const eW = new Set();
+  qW.forEach(w => expandWord(w).forEach(v => eW.add(v)));
+  const ew = [...eW];
+
+  /* ── S1: Fjalori dialektal saktë ── */
+  for (const [word, meaning] of Object.entries(FJALOR)) {
+    const nw = norm(word);
+    if (q === nw) return { type:'dict', word, meaning };
+  }
+
+  /* ── S2: Fjalori dialektal — fuzzy ── */
+  let bestDictScore = 0, bestDict = null;
+  for (const [word, meaning] of Object.entries(FJALOR)) {
+    const nw = norm(word);
+    // Input = fjalë e vetme, krahaso direkt
+    if (qW.length <= 2) {
+      const d = lev(q, nw);
+      const maxD = nw.length <= 4 ? 1 : nw.length <= 7 ? 2 : 3;
+      if (d <= maxD && d < bestDictScore || bestDict === null) {
+        if (d <= maxD) { bestDictScore = -d; bestDict = {word,meaning}; }
+      }
+    }
+    if (q.includes(nw) || nw.includes(q)) return { type:'dict', word, meaning };
+    // Fuzzy word overlap
+    const nwW = nw.split(' ');
+    const overlap = qW.filter(qw => nwW.some(nww => fuzzy(qw, nww))).length;
+    if (overlap > 0 && overlap >= Math.min(qW.length, nwW.length)) {
+      return { type:'dict', word, meaning };
+    }
+  }
+  if (bestDict && bestDictScore > -3) return { type:'dict', ...bestDict };
+
+  /* ── S3: KB — fraza saktë ── */
+  for (const e of KB) {
+    for (const a of e.ask) {
+      const na = norm(a);
+      if (q === na) return { type:'kb', r:e.r };
+    }
+  }
+
+  /* ── S4: KB — fuzzy fraza ── */
+  for (const e of KB) {
+    for (const a of e.ask) {
+      const na = norm(a);
+      if (q.includes(na) || na.includes(q)) return { type:'kb', r:e.r };
+      // Ngram score i lartë
+      if (ngramScore(q, na) >= 0.75) return { type:'kb', r:e.r };
+    }
+  }
+
+  /* ── S5: KB — scoring me fjalë kyçe + fuzzy ── */
+  let bestKB = null, bestScore = 0;
+  for (const e of KB) {
+    let score = 0;
+    for (const kw of e.keys) {
+      const nk = norm(kw);
+      const nkW = nk.split(' ');
+      // Saktë
+      if (ew.includes(nk)) { score += 6; continue; }
+      if (q.includes(nk))  { score += 5; continue; }
+      if (nk.includes(q) && q.length > 3) { score += 4; continue; }
+      // Fuzzy fjalë individuale
+      let kwScore = 0;
+      ew.forEach(w => {
+        if (w.length < 3) return;
+        nkW.forEach(nkw => {
+          if (w === nkw)              { kwScore += 4; }
+          else if (nkw.includes(w) || w.includes(nkw)) { kwScore += 3; }
+          else if (fuzzy(w, nkw))     { kwScore += 2; }
+          else if (nkw.startsWith(w.slice(0,Math.floor(w.length*0.75)))) { kwScore += 1; }
+        });
+      });
+      score += Math.min(kwScore, 5);
+    }
+    if (score > bestScore) { bestScore = score; bestKB = e; }
+  }
+  if (bestKB && bestScore >= 3) return { type:'kb', r:bestKB.r };
+
+  /* ── S6: Fuzzy me Levenshtein ndaj keys ── */
+  let fuzzyBest = null, fuzzyBestScore = 0;
+  for (const e of KB) {
+    let score = 0;
+    for (const kw of e.keys) {
+      const nk = norm(kw);
+      ew.forEach(w => {
+        if (w.length < 4) return;
+        if (lev(w, nk) <= 2) score += 3;
+        else if (lev(w, nk) <= 3 && w.length > 5) score += 2;
+      });
+    }
+    if (score > fuzzyBestScore) { fuzzyBestScore = score; fuzzyBest = e; }
+  }
+  if (fuzzyBest && fuzzyBestScore >= 4) return { type:'kb', r:fuzzyBest.r };
+
+  /* ── S7: Fjalori — çdo fjalë e query ── */
+  for (const w of ew) {
+    if (w.length < 3) continue;
+    for (const [word, meaning] of Object.entries(FJALOR)) {
+      const nw = norm(word);
+      const nwW = nw.split(' ');
+      if (nwW.some(nww => fuzzy(w, nww))) return { type:'dict', word, meaning };
+    }
+  }
+
+  return null;
+}
+
+/* ══════════════════════════════════════════════════
+   PARTICLES
+══════════════════════════════════════════════════ */
+(function(){
+  const c=document.getElementById('particles'),ctx=c.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  function mkPt(){return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.2+0.2,vx:(Math.random()-0.5)*0.14,vy:-Math.random()*0.16-0.02,a:Math.random()*0.4+0.07,life:0,maxLife:Math.random()*420+180};}
+  for(let i=0;i<55;i++)pts.push(mkPt());
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach((p,i)=>{
+      p.life++;p.x+=p.vx;p.y+=p.vy;
+      const f=p.life<60?p.life/60:p.life>p.maxLife-60?(p.maxLife-p.life)/60:1;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(193,125,60,${p.a*f})`;ctx.fill();
+      if(p.life>=p.maxLife||p.y<-10)pts[i]=mkPt();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ══════════════════════════════════════════════════
+   TABS
+══════════════════════════════════════════════════ */
+function switchTab(t){
+  const c=t==='chat';
+  document.getElementById('tab-chat').classList.toggle('active',c);
+  document.getElementById('tab-browse').classList.toggle('active',!c);
+  document.getElementById('chatbox').style.display=c?'flex':'none';
+  document.getElementById('browse-panel').style.display=c?'none':'flex';
+  document.getElementById('iarea').style.display=c?'flex':'none';
+  if(!c)renderBrowse('');
+}
+function renderBrowse(filter){
+  const entries=Object.entries(FJALOR);
+  const f=filter.toLowerCase().trim();
+  const filtered=f?entries.filter(([k,v])=>k.includes(f)||v.toLowerCase().includes(f)):entries;
+  document.getElementById('bcnt').textContent=filtered.length+' FJALË DHE SHPREHJE DIALEKTALE';
+  const con=document.getElementById('dentries');con.innerHTML='';
+  filtered.forEach(([word,meaning])=>{
+    const el=document.createElement('div');el.className='entry';
+    el.innerHTML=`<span class="ew">${word}</span><span class="es">→</span><span class="em">${meaning}</span>`;
+    el.onclick=()=>{switchTab('chat');setTimeout(()=>{document.getElementById('input').value=word;dergo();},100);};
+    con.appendChild(el);
+  });
+}
+function filtro(){renderBrowse(document.getElementById('binput').value);}
+
+/* ══════════════════════════════════════════════════
+   CHAT
+══════════════════════════════════════════════════ */
+const chatbox=document.getElementById('chatbox');
+const inputEl=document.getElementById('input');
+
+function removeWelcome(){const w=document.getElementById('welmsg');if(w)w.remove();}
+
+function addMsg(html,role,extra=''){
+  removeWelcome();
+  const wrap=document.createElement('div');
+  wrap.className=`msg ${role}${extra?' '+extra:''}`;
+  const av=document.createElement('div');av.className='av';av.textContent=role==='user'?'T':'S';
+  const bub=document.createElement('div');bub.className='bubble';
+  bub.innerHTML=html.replace(/\n/g,'<br>');
+  wrap.appendChild(av);wrap.appendChild(bub);
+  chatbox.appendChild(wrap);chatbox.scrollTop=chatbox.scrollHeight;
+}
+
+function addTyping(){
+  removeWelcome();
+  const wrap=document.createElement('div');wrap.className='msg bot';wrap.id='typi';
+  const av=document.createElement('div');av.className='av';av.textContent='S';
+  const bub=document.createElement('div');bub.className='bubble';
+  bub.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>';
+  wrap.appendChild(av);wrap.appendChild(bub);
+  chatbox.appendChild(wrap);chatbox.scrollTop=chatbox.scrollHeight;
+}
+function removeTyping(){const t=document.getElementById('typi');if(t)t.remove();}
+
+function dergo(){
+  const text=inputEl.value.trim();
+  if(!text)return;
+  inputEl.value='';
+  addMsg(text,'user');
+  addTyping();
+
+  setTimeout(()=>{
+    removeTyping();
+    const res=match(text);
+    if(res){
+      if(res.type==='dict'){
+        addMsg(
+          `<span class="db">FJALORI DIALEKTAL SULOVAR</span><span class="dw">"${res.word}"</span><span class="dm">→ ${res.meaning}</span>`,
+          'bot','dict'
+        );
+      } else {
+        addMsg(res.r,'bot');
+      }
+      // Pas çdo përgjigje shfaq butonin e kthimit
+      showReturnBtn();
+    } else {
+      addMsg(
+        `Nuk e kuptova mirë — provoni me fjalë të tjera.<br><br>`+
+        `📜 <strong>Historia · Arkeologjia · Kalaja</strong><br>`+
+        `💒 <strong>Dasmat · Kultura · Folklori</strong><br>`+
+        `🍽 <strong>Gatimet · Ëmbëlsirat · Pijet</strong><br>`+
+        `🌾 <strong>Bujqësia · Natyra · Turizmi</strong><br>`+
+        `🏫 <strong>Arsimi · Feja · Emigracioni</strong><br>`+
+        `🗣 <strong>Fjalë dialektale</strong> — nona, rrofsh, opinga...<br><br>`+
+        `<button onclick="resetChat()" style="font-family:\'Cormorant SC\',serif;font-size:0.55rem;letter-spacing:3px;background:var(--rust);color:var(--bone);border:none;padding:8px 18px;cursor:pointer;margin-top:4px;">↩ KTHEHU TE PYETJET</button>`,
+        'bot'
+      );
+    }
+  },420);
+}
+
+function showReturnBtn(){
+  // Hiq butonin e vjetër nëse ekziston
+  const old = document.getElementById('ret-btn-wrap');
+  if(old) old.remove();
+  const wrap = document.createElement('div');
+  wrap.id = 'ret-btn-wrap';
+  wrap.style.cssText = 'display:flex;justify-content:center;margin:4px 0;animation:fadeUp 0.4s ease forwards;';
+  wrap.innerHTML = `<button onclick="resetChat()" style="font-family:'Cormorant SC',serif;font-size:0.52rem;letter-spacing:3px;background:transparent;color:var(--rust);border:1px solid rgba(107,45,14,0.3);padding:7px 18px;cursor:pointer;transition:all 0.25s;" onmouseover="this.style.background='var(--rust)';this.style.color='var(--bone)'" onmouseout="this.style.background='transparent';this.style.color='var(--rust)'">↩ KTHEHU TE PYETJET</button>`;
+  chatbox.appendChild(wrap);
+  chatbox.scrollTop = chatbox.scrollHeight;
+}
+
+function resetChat(){
+  // Pastro chatbox
+  chatbox.innerHTML = '';
+  // Rishfaq welcome screen
+  const wel = document.createElement('div');
+  wel.className = 'welcome';
+  wel.id = 'welmsg';
+  wel.innerHTML = `
+    <span class="ws">✦</span>
+    <p>Mirë se vini! Pyetni çfarë dëshironi për <strong>Sulovën</strong> — historinë, kulturën, dasmat, bujqësinë, gatimet — ose shkruani një fjalë në <strong>dialektin sulovar</strong>.</p>
+    <div class="wtags">
+      <span class="wtag" onclick="aq('çfarë është sulova')">Çfarë është Sulova?</span>
+      <span class="wtag" onclick="aq('historia')">Historia</span>
+      <span class="wtag" onclick="aq('kultura dhe traditat')">Kultura</span>
+      <span class="wtag" onclick="aq('dasma')">Dasmat</span>
+      <span class="wtag" onclick="aq('gatimet tradicionale sulovare')">Gatimet</span>
+      <span class="wtag" onclick="aq('ëmbëlsirat tradicionale')">Ëmbëlsirat</span>
+      <span class="wtag" onclick="aq('pijet tradicionale')">Pijet</span>
+      <span class="wtag" onclick="aq('bujqesia')">Bujqësia</span>
+      <span class="wtag" onclick="aq('arsimi')">Arsimi</span>
+      <span class="wtag" onclick="aq('turizmi')">Turizmi</span>
+      <span class="wtag" onclick="aq('natyra')">Natyra</span>
+      <span class="wtag" onclick="aq('emigracioni')">Emigracioni</span>
+      <span class="wtag" onclick="aq('sporti')">Sporti</span>
+      <span class="wtag" onclick="aq('feja')">Feja</span>
+      <span class="wtag" onclick="aq('ça po bon')">ça po bon</span>
+      <span class="wtag" onclick="aq('rrofsh')">rrofsh</span>
+      <span class="wtag" onclick="aq('nona')">nona</span>
+      <span class="wtag" onclick="aq('what is sulova')">English?</span>
+    </div>`;
+  chatbox.appendChild(wel);
+  chatbox.scrollTop = 0;
+}
+
+function aq(q){inputEl.value=q;dergo();}
+inputEl.addEventListener('keydown',e=>{if(e.key==='Enter')dergo();});
+</script>
+</body>
+</html>
